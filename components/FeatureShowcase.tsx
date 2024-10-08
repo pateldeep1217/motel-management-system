@@ -4,7 +4,7 @@ import { BarChart, ClipboardCheck, Clock, DollarSign } from "lucide-react";
 
 function FeatureShowcase() {
   return (
-    <div className="h-full bg-slate-900 hidden lg:flex flex-col items-center justify-center text-white p-8">
+    <div className="h-full bg-sky-950 hidden lg:flex flex-col items-center justify-center text-white p-8">
       <h2 className="text-3xl font-bold mb-8">
         Modernize Your Motel Management
       </h2>
