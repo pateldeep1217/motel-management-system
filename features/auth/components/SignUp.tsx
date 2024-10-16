@@ -72,8 +72,8 @@ export default function SignUp() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="w-full max-w-md mx-auto">
-          <CardHeader>
+        <Card className="max-w-xl p-10 ">
+          <CardHeader className="py-5 pb-10">
             <CardTitle className="text-2xl font-bold text-center">
               Join StaySync
             </CardTitle>
@@ -158,7 +158,7 @@ export default function SignUp() {
                     )}
                   />
                 </fieldset>
-                <Button type="submit" className="w-full mt-4">
+                <Button type="submit" className="w-full mt-5">
                   Sign Up
                 </Button>
               </form>

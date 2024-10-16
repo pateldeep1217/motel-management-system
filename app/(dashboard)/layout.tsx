@@ -3,9 +3,9 @@ import React from "react";
 
 function DashboardLayout() {
   return (
-    <div>
+    <main>
       <UserButton />
-    </div>
+    </main>
   );
 }
 

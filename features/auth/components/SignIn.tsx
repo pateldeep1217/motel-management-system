@@ -52,8 +52,8 @@ export default function SignIn() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
+    <Card className="max-w-xl sm:p-10 ">
+      <CardHeader className="py-5 pb-10">
         <CardTitle className="text-2xl font-bold text-center">
           Welcome back to StaySync
         </CardTitle>
@@ -114,10 +114,10 @@ export default function SignIn() {
               Log In
             </Button>
 
-            <div className="text-sm mt-2">
+            <div className="text-sm mt-4">
               <Link
                 href="/forgot-password"
-                className="text-primary hover:underline"
+                className="text-primary hover:underline "
               >
                 Forgot your password?
               </Link>
