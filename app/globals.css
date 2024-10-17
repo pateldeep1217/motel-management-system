@@ -44,7 +44,8 @@ body {
     --logo-fill-secondary: 224 71.43% 4.12%;
   }
   .dark {
-    --background: 224 71.43% 4.12%;
+    /* 0, 0%, 4%; */
+    --background: 240, 8%, 10%;
     --foreground: 0 0% 100%;
 
     --primary: 199.37 95.49% 73.92%;
