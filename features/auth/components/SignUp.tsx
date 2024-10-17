@@ -53,7 +53,7 @@ export default function SignUp() {
   return (
     <div>
       {form.formState.isSubmitSuccessful ? (
-        <Card className="max-w-md mx-auto mt-8">
+        <Card className="max-w-md mx-auto mt-8 ">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-center">
               Account Created!

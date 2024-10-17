@@ -23,7 +23,7 @@ export function AuthLayout({
           </h1>
           {subtitle && <p className="mt-3 text-center text-lg ">{subtitle}</p>}
         </div>
-        <div className="-mx-4 mt-10 flex-auto px-4 py-10 shadow-2xl sm:mx-0 sm:flex-none sm:rounded-5xl sm:p-24 sm:bg-card rounded-2xl">
+        <div className="mx-4 mt-10 flex-auto px-4 py-10  p-24 rounded-2xl">
           {children}
         </div>
       </div>
