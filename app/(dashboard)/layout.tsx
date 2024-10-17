@@ -1,11 +1,16 @@
-import UserButton from "@/features/auth/components/UserButton";
-import React from "react";
+import Sidebar from "@/components/Sidebar/Sidebar";
+import React, { ReactNode } from "react";
 
-function DashboardLayout() {
+type Props = {
+  children: ReactNode;
+};
+
+function DashboardLayout({ children }: Props) {
   return (
-    <main>
-      <UserButton />
-    </main>
+    <div className="flex">
+      <Sidebar />
+      <main className="bg-[#18181C] w-full h-screen">{children}</main>
+    </div>
   );
 }
 
