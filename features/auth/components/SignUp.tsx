@@ -72,107 +72,82 @@ export default function SignUp() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="max-w-xl p-10 ">
-          <CardHeader className="py-5 pb-10">
-            <CardTitle className="text-2xl font-bold text-center">
-              Join StaySync
-            </CardTitle>
-            <CardDescription className="text-center">
-              Sign up to manage your motels efficiently and stay connected with
-              your team.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)}>
-                <fieldset
-                  disabled={form.formState.isSubmitting}
-                  className="flex flex-col gap-6"
-                >
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="John Doe"
-                            type="text"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="you@example.com"
-                            type="email"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="••••••••"
-                            type="password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="••••••••"
-                            type="password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </fieldset>
-                <Button type="submit" className="w-full mt-5">
-                  Sign Up
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col  ">
-            <p className="text-sm text-center text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/sign-in" className="text-primary hover:underline">
-                Sign In
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <fieldset
+              disabled={form.formState.isSubmitting}
+              className="flex flex-col gap-6"
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" type="text" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="you@example.com"
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="••••••••"
+                        type="password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="••••••••"
+                        type="password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </fieldset>
+            <Button type="submit" className="w-full mt-5">
+              Sign Up
+            </Button>
+          </form>
+        </Form>
       )}
     </div>
   );

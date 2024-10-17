@@ -25,6 +25,7 @@ export const loginUser = async ({
       email,
       password,
       redirect: false,
+      callbackUrl: "/",
     });
   } catch (e) {
     return {

@@ -1,12 +1,25 @@
 import React from "react";
 
 import SignUp from "@/features/auth/components/SignUp";
+import { AuthLayout } from "@/features/auth/components/AuthLayout";
+import Link from "next/link";
 
 function SignUpPage() {
   return (
-    <div className="min-h-screen flex justify-center items-center">
+    <AuthLayout
+      title="Sign up for an account"
+      subtitle={
+        <>
+          Already registered?
+          <Link href="/sign-in" className="text-cyan-600 ml-2 mr-1.5">
+            Sign in
+          </Link>
+          to your account.
+        </>
+      }
+    >
       <SignUp />
-    </div>
+    </AuthLayout>
   );
 }
 

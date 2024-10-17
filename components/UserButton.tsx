@@ -11,12 +11,18 @@ import {
 import { LogOut, Loader } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "./ui/button";
+import { useRouter } from "next/router";
 
 const UserButton = () => {
+  // const router = useRouter();
   const { data: session, status } = useSession();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  useEffect(() => {}, [status, session]);
+  // useEffect(() => {
+  //   if (status === "authenticated") {
+  //     router.reload();
+  //   }
+  // }, [status, router]);
 
   const getInitials = (name: string) => {
     return name
@@ -41,35 +47,27 @@ const UserButton = () => {
   if (status === "loading") {
     return <Loader className="animate-spin" />;
   }
-
+  const name = session?.user?.name;
+  const image = session?.user?.image;
   const userInitials = getInitials(session?.user?.name || "User Name");
 
   return (
-    <>
-      {status === "authenticated" ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="outline-none">
-            <Avatar className="h-10 w-10 hover:opacity-75 transition">
-              <AvatarImage
-                src={session.user?.image || ""}
-                alt={session.user?.name || ""}
-              />
-              <AvatarFallback className="bg-blue-500 font-medium text-white">
-                {userInitials}
-              </AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-60">
-            <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              {isLoggingOut ? "Logging out..." : "Log out"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <Button onClick={() => signIn()}>Sign In</Button>
-      )}
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger className="outline-none">
+        <Avatar className="h-10 w-10 hover:opacity-75 transition">
+          <AvatarImage src={image || ""} alt={name || ""} />
+          <AvatarFallback className=" font-medium text-white">
+            {userInitials}
+          </AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-60">
+        <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+          <LogOut className="mr-2 h-4 w-4" />
+          {isLoggingOut ? "Logging out..." : "Log out"}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
