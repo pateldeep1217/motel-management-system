@@ -15,7 +15,7 @@ const Sidebar = () => {
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
-
+  //slate ,gray, zinc, neutral , stone
   return (
     <div>
       {/* Hamburger Menu */}
@@ -31,7 +31,7 @@ const Sidebar = () => {
       <div
         className={`fixed inset-y-0 left-0 transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out bg-gray-900 text-white w-64 h-full z-50`}
+        } transition-transform duration-300 ease-in-out  text-white w-64 h-full z-50`}
       >
         {/* Close Button */}
         <button

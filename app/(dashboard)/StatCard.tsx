@@ -6,7 +6,7 @@ const StatCard = ({ title, value, icon: Icon, previous }) => {
   const isDecrease = difference < 0;
 
   return (
-    <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800/50   ">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-800/50   ">
       <div className="flex justify-between items-start mb-4">
         <div>
           <p className="text-gray-400 text-sm font-medium mb-2">{title}</p>

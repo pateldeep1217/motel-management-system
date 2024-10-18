@@ -52,7 +52,7 @@ function Sidebar() {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <DialogPanel className="relative w-64 bg-[#0a0a0a] text-white h-full shadow-xl">
+              <DialogPanel className="relative w-64 bg-neutral-900  text-white h-full shadow-xl">
                 {/* Close icon */}
                 <XIcon
                   size={20}
