@@ -38,7 +38,7 @@ const DashboardOverview = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className=" space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-white">Overview</h2>
         <p className="text-gray-400 text-sm">Real-time hotel metrics</p>
