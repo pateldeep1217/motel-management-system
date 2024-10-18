@@ -16,60 +16,64 @@ function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div>
-      <button
-        className="lg:hidden m-4"
-        onClick={() => setSidebarOpen(true)} // Open the sidebar
-        aria-label="Open sidebar"
-      >
-        <MenuIcon size={24} className="text-white" />
-      </button>
-      <Transition show={sidebarOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50 lg:hidden"
-          onClose={setSidebarOpen}
+    <>
+      <div className="lg:hidden flex justify-between items-center w-full p-4 bg-neutral-900">
+        <button
+          className=" "
+          onClick={() => setSidebarOpen(true)} // Open the sidebar
+          aria-label="Open sidebar"
         >
-          <TransitionChild
-            as={Fragment}
-            enter="transition ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+          <MenuIcon size={24} className="text-white" />
+        </button>
+      </div>
+      <div>
+        <Transition show={sidebarOpen} as={Fragment}>
+          <Dialog
+            as="div"
+            className="relative z-50 lg:hidden"
+            onClose={setSidebarOpen}
           >
-            <div className="fixed inset-0 bg-black bg-opacity-50" />
-          </TransitionChild>
-
-          <div className="fixed inset-0 flex">
             <TransitionChild
               as={Fragment}
-              enter="transition ease-out duration-300 transform"
-              enterFrom="-translate-x-full"
-              enterTo="translate-x-0"
-              leave="transition ease-in duration-200 transform"
-              leaveFrom="translate-x-0"
-              leaveTo="-translate-x-full"
+              enter="transition ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
-              <DialogPanel className="relative w-64 bg-neutral-900  text-white h-full shadow-xl">
-                {/* Close icon */}
-                <XIcon
-                  size={20}
-                  className="m-4 cursor-pointer"
-                  onClick={() => setSidebarOpen(false)}
-                />
-                {/* Sidebar content */}
-                <SidebarContent />
-              </DialogPanel>
+              <div className="fixed inset-0 bg-black bg-opacity-50" />
             </TransitionChild>
-          </div>
-        </Dialog>
-      </Transition>
-      <div className="hidden lg:block lg:w-64 h-full bg-[#0a0a0a]">
-        <SidebarContent />
+
+            <div className="fixed inset-0 flex">
+              <TransitionChild
+                as={Fragment}
+                enter="transition ease-out duration-300 transform"
+                enterFrom="-translate-x-full"
+                enterTo="translate-x-0"
+                leave="transition ease-in duration-200 transform"
+                leaveFrom="translate-x-0"
+                leaveTo="-translate-x-full"
+              >
+                <DialogPanel className="relative w-64 bg-neutral-900  text-white h-full shadow-xl">
+                  {/* Close icon */}
+                  <XIcon
+                    size={20}
+                    className="m-4 cursor-pointer"
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  {/* Sidebar content */}
+                  <SidebarContent />
+                </DialogPanel>
+              </TransitionChild>
+            </div>
+          </Dialog>
+        </Transition>
+        <div className="hidden lg:block lg:w-64 h-full bg-[#0a0a0a]">
+          <SidebarContent />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
