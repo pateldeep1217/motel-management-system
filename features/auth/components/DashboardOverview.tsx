@@ -1,4 +1,4 @@
-import StatCard from "@/app/(dashboard)/StatCard";
+import StatCard from "@/components/StatCard";
 import {
   UserPlus,
   DoorClosed,
@@ -18,22 +18,23 @@ const DashboardOverview = () => {
       icon: UserPlus,
     },
     {
-      title: "Total Rooms",
-      value: 22, // Total rooms in the motel
-      previous: 22, // No change
-      icon: Building2,
-    },
-    {
       title: "Occupied Rooms",
       value: 20, // Currently occupied rooms
       previous: 18, // Rooms occupied yesterday
       icon: DoorClosed,
     },
+
     {
       title: "Available Rooms",
       value: 2, // Current available rooms
       previous: 4, // Available rooms yesterday
       icon: DoorOpen,
+    },
+    {
+      title: "Total Rooms",
+      value: 22, // Total rooms in the motel
+      previous: 22, // No change
+      icon: Building2,
     },
   ];
 

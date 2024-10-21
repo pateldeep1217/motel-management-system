@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useSession, signOut, signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { useSession, signOut, getSession } from "next-auth/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +11,21 @@ import {
 import { LogOut, Loader } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+
 const UserButton = () => {
   const { data: session, status } = useSession();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(true);
 
-  const getInitials = (name: string) => {
+  useEffect(() => {
+    const loadSession = async () => {
+      await getSession();
+      setLoadingSession(false);
+    };
+    loadSession();
+  }, []);
+
+  const getInitials = (name) => {
     return name
       .split(" ")
       .map((part) => part[0])
@@ -35,22 +45,33 @@ const UserButton = () => {
     }
   };
 
-  if (status === "loading") {
+  if (status === "loading" || loadingSession) {
     return <Loader className="animate-spin" />;
   }
 
-  const userInitials = getInitials(session?.user?.name || "User Name");
   const name = session?.user?.name;
   const image = session?.user?.image;
+  const email = session?.user?.email;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="outline-none">
-        <Avatar className="h-10 w-10 hover:opacity-75 transition">
-          <AvatarImage src={image || ""} alt={name || ""} />
-          <AvatarFallback className="bg-accent font-medium text-white">
-            {userInitials}
-          </AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-2 ">
+          <span className="flex min-w-0 items-center gap-3">
+            <Avatar>
+              <AvatarImage src={image || ""} alt={name || ""} />
+              <AvatarFallback>{name ? getInitials(name) : "?"}</AvatarFallback>
+            </Avatar>
+            <span className="min-w-0">
+              <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">
+                {name}
+              </span>
+              <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
+                {email}
+              </span>
+            </span>
+          </span>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>

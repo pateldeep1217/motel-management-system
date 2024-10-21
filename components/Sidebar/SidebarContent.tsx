@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Logo from "../svg/Logo";
 import { motion } from "framer-motion";
-
 import {
   HomeIcon,
   LayoutDashboardIcon,
@@ -29,24 +28,26 @@ const menuItems = [
 ];
 
 function SidebarContent() {
-  const [activeItem, setActiveItem] = useState(menuItems[0].name);
+  const pathname = usePathname();
+  const activeItem =
+    menuItems.find((item) => item.path === pathname)?.name || "";
 
   return (
-    <div className="lg:w-64 bg-neutral-900  min-h-screen flex flex-col justify-between">
-      <div className="">
-        <div className="flex items-center gap-2 ml-5 h-14 w-64">
+    <div className="flex flex-col h-full w-full overflow-hidden">
+      <div className="flex-grow">
+        <div className="flex items-center gap-2 ml-5 h-14">
           <Logo className="h-5" />
           <h3 className="text-lg">StaySync</h3>
         </div>
-        <hr className="border-t border-zinc-950/15 dark:border-white/15" />
-        <div className="relative">
+        <hr className="border-t border-zinc-950/15 dark:border-white/15 w-full" />
+        <nav className="mt-4">
           {menuItems.map((item) => (
             <Link href={item.path} key={item.name}>
               <div
-                className={`relative flex items-center gap-2 px-4 py-2 text-base font-medium text-zinc-950 dark:text-white cursor-pointer hover:bg-zinc-800 my-2`}
-                onClick={() => setActiveItem(item.name)}
+                className={`relative flex items-center gap-2 px-4 py-2 text-base font-medium text-zinc-950 dark:text-white cursor-pointer hover:bg-zinc-800 my-2 ${
+                  activeItem === item.name
+                }`}
               >
-                {/* Only show the motion indicator for the active item */}
                 {activeItem === item.name && (
                   <motion.span
                     layoutId="current-indicator"
@@ -63,9 +64,9 @@ function SidebarContent() {
               </div>
             </Link>
           ))}
-        </div>
+        </nav>
       </div>
-      <div className="m-2">
+      <div className="mt-auto mb-4 px-4">
         <UserButton />
       </div>
     </div>
