@@ -138,7 +138,6 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   guest: one(guests, { fields: [bookings.guestId], references: [guests.id] }),
 }));
 
-/
 export const userInsertSchema = createInsertSchema(users);
 export const motelInsertSchema = createInsertSchema(motels);
 export const roomInsertSchema = createInsertSchema(rooms);

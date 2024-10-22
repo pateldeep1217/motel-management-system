@@ -5,8 +5,13 @@ import {
   authRoutes,
   publicRoutes,
 } from "./routes";
+import { db } from "./db";
+import { motels } from "./db/schema";
+import { eq } from "drizzle-orm";
 
-export default auth((req) => {
+export default auth(async (req) => {
+  // Added async here
+  const session = req.auth;
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
@@ -30,8 +35,25 @@ export default auth((req) => {
     );
   }
 
+  // Add motel check for logged-in users on the home page
+  if (isLoggedIn && nextUrl.pathname === "/" && session?.user?.id) {
+    try {
+      const userMotels = await db
+        .select()
+        .from(motels)
+        .where(eq(motels.ownerId, session.user.id));
+
+      if (userMotels.length === 0) {
+        return Response.redirect(new URL("/create-motel", nextUrl));
+      }
+    } catch (error) {
+      console.error("Error checking motels:", error);
+    }
+  }
+
   return null;
 });
+
 export const config = {
   matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
