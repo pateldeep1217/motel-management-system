@@ -45,7 +45,7 @@ body {
   }
   .dark {
     /* 0, 0%, 4%; */
-    --background: 240, 8%, 10%;
+    --background: 240, 10%, 4%;
     --foreground: 0 0% 100%;
 
     --primary: 199.37 95.49% 73.92%;

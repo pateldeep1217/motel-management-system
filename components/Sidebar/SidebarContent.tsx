@@ -35,11 +35,11 @@ function SidebarContent() {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
       <div className="flex-grow">
-        <div className="flex items-center gap-2 ml-5 h-14">
+        <div className="flex items-center gap-2 m-2 h-14 justify-center">
           <Logo className="h-5" />
           <h3 className="text-lg">StaySync</h3>
         </div>
-        <hr className="border-t border-zinc-950/15 dark:border-white/15 w-full" />
+        <hr className="border-t border-zinc-950/5 dark:border-white/5 w-full" />
         <nav className="mt-4">
           {menuItems.map((item) => (
             <Link href={item.path} key={item.name}>
