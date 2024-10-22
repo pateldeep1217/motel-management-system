@@ -7,6 +7,9 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+
+import { Many, relations } from "drizzle-orm";
 
 export const userRoleEnum = pgEnum("user_role", ["admin", "staff"]);
 
@@ -107,3 +110,37 @@ export const bookings = pgTable("booking", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+  motels: many(motels),
+}));
+
+export const motelsRelations = relations(motels, ({ one, many }) => ({
+  owner: one(users, { fields: [motels.ownerId], references: [users.id] }),
+  rooms: many(rooms),
+  guests: many(guests),
+  bookings: many(bookings),
+}));
+
+export const roomsRelations = relations(rooms, ({ one, many }) => ({
+  motel: one(motels, { fields: [rooms.motelId], references: [motels.id] }),
+  bookings: many(bookings),
+}));
+
+export const guestsRelations = relations(guests, ({ one, many }) => ({
+  motel: one(motels, { fields: [guests.motelId], references: [motels.id] }),
+  bookings: many(bookings),
+}));
+
+export const bookingsRelations = relations(bookings, ({ one }) => ({
+  motel: one(motels, { fields: [bookings.motelId], references: [motels.id] }),
+  room: one(rooms, { fields: [bookings.roomId], references: [rooms.id] }),
+  guest: one(guests, { fields: [bookings.guestId], references: [guests.id] }),
+}));
+
+/
+export const userInsertSchema = createInsertSchema(users);
+export const motelInsertSchema = createInsertSchema(motels);
+export const roomInsertSchema = createInsertSchema(rooms);
+export const guestInsertSchema = createInsertSchema(guests);
+export const bookingInsertSchema = createInsertSchema(bookings);
