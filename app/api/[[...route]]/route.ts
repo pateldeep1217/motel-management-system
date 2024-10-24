@@ -5,9 +5,6 @@ import motels from "./motels";
 
 import { auth } from "@/auth";
 
-// Revert to "edge" if planning on running on the edge
-export const runtime = "nodejs";
-
 function getAuthConfig(c: Context): AuthConfig {
   return {
     secret: c.env.AUTH_SECRET,

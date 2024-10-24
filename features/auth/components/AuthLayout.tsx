@@ -12,7 +12,7 @@ export function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="flex min-h-full overflow-hidden pt-16 sm:py-28">
+    <main className="flex min-h-screen overflow-hidden pt-16  dark:bg-[#18181B] p-12 rounded-lg">
       <div className="mx-auto flex w-full max-w-2xl flex-col sm:px-6">
         <Link href="/" aria-label="Home">
           <Logo className="mx-auto h-10 w-auto" />

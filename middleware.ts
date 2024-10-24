@@ -14,11 +14,12 @@ export default auth(async (req) => {
   const session = req.auth;
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
+  const isApiRequest = nextUrl.pathname.startsWith("/api");
+
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 
-  if (isApiAuthRoute) return null;
+  if (isApiRequest) return null;
 
   if (isAuthRoute) {
     if (isLoggedIn) {
@@ -35,25 +36,50 @@ export default auth(async (req) => {
     );
   }
 
-  // Add motel check for logged-in users on the home page
-  if (isLoggedIn && nextUrl.pathname === "/" && session?.user?.id) {
-    try {
-      const userMotels = await db
-        .select()
-        .from(motels)
-        .where(eq(motels.ownerId, session.user.id));
+  if (isLoggedIn) {
+    const userMotels = await db
+      .select()
+      .from(motels)
+      .where(eq(motels.ownerId, session?.user?.id ?? ""));
 
-      if (userMotels.length === 0) {
+    if (
+      userMotels.length === 0 &&
+      !nextUrl.pathname.startsWith("/create-motel")
+    ) {
+      console.log("No motels found, redirecting to /create-motel");
+      if (isApiRequest) {
+        return new Response(JSON.stringify({ error: "No motels associated" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        });
+      } else {
         return Response.redirect(new URL("/create-motel", nextUrl));
       }
-    } catch (error) {
-      console.error("Error checking motels:", error);
     }
   }
-
   return null;
 });
 
 export const config = {
   matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
+
+//   // Add motel check for logged-in users on the home page
+//   if (isLoggedIn && nextUrl.pathname === "/" && session?.user?.id) {
+//     console.log(isLoggedIn, session?.user);
+//     console.log(nextUrl.pathname);
+//     try {
+//       const userMotels = await db
+//         .select()
+//         .from(motels)
+//         .where(eq(motels.ownerId, session.user.id));
+
+//       if (userMotels.length === 0) {
+//         return Response.redirect(new URL("/create-motel", nextUrl));
+//       }
+//     } catch (error) {
+//       console.error("Error checking motels:", error);
+//     }
+//   }
+
+//   return null;
