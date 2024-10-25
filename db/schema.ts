@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 
-import { Many, relations } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 
 export const userRoleEnum = pgEnum("user_role", ["admin", "staff"]);
 
@@ -21,6 +21,7 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   password: text("password"),
   role: userRoleEnum("role").default("staff"),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -59,6 +60,21 @@ export const motels = pgTable("motel", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+export const userMotels = pgTable(
+  "user_motels",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    motelId: text("motel_id")
+      .notNull()
+      .references(() => motels.id, { onDelete: "cascade" }),
+    role: text("role"),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.motelId] }),
+  })
+);
 
 export const rooms = pgTable("room", {
   id: text("id")

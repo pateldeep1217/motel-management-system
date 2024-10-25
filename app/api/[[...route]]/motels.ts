@@ -5,23 +5,14 @@ import { verifyAuth } from "@hono/auth-js";
 import { zValidator } from "@hono/zod-validator";
 
 import { db } from "@/db";
-import { motels, users } from "@/db/schema";
+import { motels, motelInsertSchema } from "@/db/schema";
 
-const createMotelSchema = z.object({
-  name: z.string().min(2),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zipCode: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  description: z.string().optional(),
-});
-
-const updateMotelSchema = createMotelSchema.partial();
+const updateMotelSchema = motelInsertSchema.partial();
 
 const app = new Hono()
+
   .get(
-    "/",
+    "/user-motels",
     verifyAuth(),
     zValidator(
       "query",
@@ -34,12 +25,15 @@ const app = new Hono()
       const auth = c.get("authUser");
       const { page, limit } = c.req.valid("query");
 
+      console.log("Authenticated User:", auth);
+      console.log("Page:", page, "Limit:", limit);
+
       if (!auth.token?.id) {
         return c.json({ error: "Unauthorized" }, 401);
       }
 
       try {
-        const data = await db
+        const userMotelsData = await db
           .select()
           .from(motels)
           .where(eq(motels.ownerId, String(auth.token.id)))
@@ -48,8 +42,8 @@ const app = new Hono()
           .orderBy(desc(motels.createdAt));
 
         return c.json({
-          data,
-          nextPage: data.length === limit ? page + 1 : null,
+          userMotelsData,
+          nextPage: userMotelsData.length === limit ? page + 1 : null,
         });
       } catch (error) {
         console.error("Error fetching motels:", error);
@@ -60,10 +54,11 @@ const app = new Hono()
   .post(
     "/create",
     verifyAuth(),
-    zValidator("json", createMotelSchema),
+    zValidator("json", motelInsertSchema),
     async (c) => {
       const auth = c.get("authUser");
       const values = c.req.valid("json");
+      console.log("Received request:", await c.req.json());
 
       if (!auth.token?.id) {
         return c.json({ error: "Unauthorized" }, 401);

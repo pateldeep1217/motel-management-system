@@ -2,6 +2,7 @@ import DashboardOverview from "@/features/auth/components/DashboardOverview";
 import DailyRoomRevenue from "../../components/DailyRoomRevenue";
 
 import RoomStatus from "../../components/RoomStatus";
+import UserMotelsList from "@/features/motels/components/UserMotelsList";
 
 export default async function Home() {
   return (
@@ -9,6 +10,7 @@ export default async function Home() {
       <DashboardOverview />
       <DailyRoomRevenue />
       <RoomStatus />
+      <UserMotelsList />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./db";
-import { users } from "./db/schema";
+import { motels, users } from "./db/schema";
 import { eq } from "drizzle-orm";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -33,10 +33,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         }
 
+        const [motel] = await db
+          .select()
+          .from(motels)
+          .where(eq(motels.ownerId, user.id));
+
         return {
           id: user.id.toString(),
           email: user.email,
           name: user.name,
+          motelId: motel.id,
         };
       },
     }),
@@ -51,6 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.name = user.name;
+        token.motelId = user.motelId;
       }
       return token;
     },
@@ -58,6 +65,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session?.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
+        session.user.motelId = token.motelId;
       }
       return session;
     },

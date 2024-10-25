@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useCreateMotel } from "@/features/auth/motels/api/use-create-motel";
+import { useCreateMotel } from "@/features/motels/api/use-create-motel";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -45,7 +45,6 @@ export default function CreateMotel() {
 
   const handleSubmit = (data: any) => {
     mutate(data); // Sends form data via the mutation hook
-    console.log(data);
   };
 
   return (

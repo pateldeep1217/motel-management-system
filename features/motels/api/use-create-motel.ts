@@ -16,7 +16,7 @@ export const useCreateMotel = () => {
       const response = await client.api.motels.create.$post({
         json: motelData,
       });
-
+      console.log("triggered:", response);
       console.log("Full response:", response); // Log the full response
 
       // If the response is successful, parse the JSON body
