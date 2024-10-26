@@ -57,24 +57,13 @@ export const motels = pgTable("motel", {
     .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  phoneNumber: text("phone_number"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-export const userMotels = pgTable(
-  "user_motels",
-  {
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    motelId: text("motel_id")
-      .notNull()
-      .references(() => motels.id, { onDelete: "cascade" }),
-    role: text("role"),
-  },
-  (t) => ({
-    pk: primaryKey({ columns: [t.userId, t.motelId] }),
-  })
-);
 
 export const rooms = pgTable("room", {
   id: text("id")
