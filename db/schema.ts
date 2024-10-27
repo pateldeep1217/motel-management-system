@@ -1,6 +1,7 @@
 import {
   boolean,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -12,6 +13,19 @@ import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 
 export const userRoleEnum = pgEnum("user_role", ["admin", "staff"]);
+export const roomStatusEnum = pgEnum("room_status", [
+  "available",
+  "occupied",
+  "maintenance",
+  "cleaning",
+]);
+
+export const bookingStatusEnum = pgEnum("booking_status", [
+  "confirmed",
+  "checked_in",
+  "checked_out",
+  "cancelled",
+]);
 
 export const users = pgTable("user", {
   id: text("id")
@@ -20,8 +34,6 @@ export const users = pgTable("user", {
   name: text("name"),
   email: text("email").unique(),
   password: text("password"),
-  role: userRoleEnum("role").default("staff"),
-
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -52,15 +64,8 @@ export const motels = pgTable("motel", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  ownerId: text("owner_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   address: text("address"),
-  city: text("city"),
-  state: text("state"),
-  zipCode: text("zip_code"),
-  phoneNumber: text("phone_number"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -76,6 +81,7 @@ export const rooms = pgTable("room", {
   type: text("type"),
   capacity: integer("capacity"),
   price: integer("price"),
+  status: roomStatusEnum("status").default("available"),
   isOccupied: boolean("is_occupied").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -112,16 +118,38 @@ export const bookings = pgTable("booking", {
     .references(() => guests.id, { onDelete: "cascade" }),
   checkIn: timestamp("check_in", { mode: "date" }).notNull(),
   checkOut: timestamp("check_out", { mode: "date" }).notNull(),
+  status: bookingStatusEnum("status").default("confirmed"),
+  totalAmount: numeric("total_amount").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const userMotels = pgTable(
+  "user_motels",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    motelId: text("motel_id")
+      .notNull()
+      .references(() => motels.id, { onDelete: "cascade" }),
+    role: userRoleEnum("role").default("staff"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (userMotels) => ({
+    compositePk: primaryKey({
+      columns: [userMotels.userId, userMotels.motelId],
+    }),
+  })
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
-  motels: many(motels),
+  motels: many(userMotels), // connects to motels via user_motels
 }));
 
-export const motelsRelations = relations(motels, ({ one, many }) => ({
-  owner: one(users, { fields: [motels.ownerId], references: [users.id] }),
+export const motelsRelations = relations(motels, ({ many }) => ({
+  users: many(userMotels), // connects to users via user_motels
   rooms: many(rooms),
   guests: many(guests),
   bookings: many(bookings),
@@ -148,3 +176,4 @@ export const motelInsertSchema = createInsertSchema(motels);
 export const roomInsertSchema = createInsertSchema(rooms);
 export const guestInsertSchema = createInsertSchema(guests);
 export const bookingInsertSchema = createInsertSchema(bookings);
+export const userMotelInsertSchema = createInsertSchema(userMotels);

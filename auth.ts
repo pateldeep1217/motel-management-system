@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./db";
-import { motels, users } from "./db/schema";
+import { users } from "./db/schema";
 import { eq } from "drizzle-orm";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -56,8 +56,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session?.user) {
-        session.user.id = token.id as string;
-        session.user.name = token.name as string;
+        try {
+          // token.id is already a string UUID, no need for parseInt
+          const [userExists] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, token.id as string)); // Make sure to pass as string
+
+          if (!userExists) {
+            return {
+              ...session,
+              user: {
+                ...session.user,
+                id: undefined,
+                name: undefined,
+                email: undefined,
+              },
+            };
+          }
+
+          session.user.id = token.id as string;
+          session.user.name = token.name as string;
+        } catch (error) {
+          console.error("Session check error:", error);
+          return {
+            ...session,
+            user: {
+              ...session.user,
+              id: undefined,
+              name: undefined,
+              email: undefined,
+            },
+          };
+        }
       }
       return session;
     },
