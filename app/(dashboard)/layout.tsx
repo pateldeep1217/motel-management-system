@@ -11,8 +11,8 @@ function capitalizeFirstLetter(string: string): string {
 }
 
 function DashboardLayout({ children }: Props) {
-  const { data: motels, isLoading, error } = useGetUserMotels();
-  const currentMotel = motels?.[0]?.name;
+  const { data, isLoading, error } = useGetUserMotels();
+  const currentMotel = data?.[0]?.motel.name;
   const displayName = currentMotel
     ? capitalizeFirstLetter(currentMotel)
     : "My Motel";

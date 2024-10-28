@@ -10,7 +10,7 @@ import { motels, motelInsertSchema, userMotels } from "@/db/schema";
 const app = new Hono()
 
   .get(
-    "/user-motels",
+    "/",
     verifyAuth(),
     zValidator(
       "query",
@@ -28,7 +28,7 @@ const app = new Hono()
       }
 
       try {
-        const userMotelsData = await db
+        const data = await db
           .select()
           .from(userMotels)
           .innerJoin(motels, eq(userMotels.motelId, motels.id))
@@ -38,8 +38,8 @@ const app = new Hono()
           .orderBy(desc(motels.createdAt));
 
         return c.json({
-          userMotelsData,
-          nextPage: userMotelsData.length === limit ? page + 1 : null,
+          data,
+          nextPage: data.length === limit ? page + 1 : null,
         });
       } catch (error) {
         console.error("Error fetching motels:", error);

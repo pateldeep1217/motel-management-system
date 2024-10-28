@@ -36,25 +36,20 @@ export default auth(async (req) => {
   }
 
   // Add motel check for logged-in users, avoid checking on the `/create-motel` page itself to prevent infinite loop
-  if (
-    isLoggedIn &&
-    nextUrl.pathname !== "/create-motel" &&
-    nextUrl.pathname !== "/api/motels/create" &&
-    session?.user?.id
-  ) {
-    try {
-      const userMotelsData = await db
-        .select()
-        .from(userMotels)
-        .where(eq(userMotels.userId, session.user.id));
+  //   if (isLoggedIn && nextUrl.pathname !== "/create-motel" && session?.user?.id) {
+  //     try {
+  //       const userMotelsData = await db
+  //         .select()
+  //         .from(userMotels)
+  //         .where(eq(userMotels.userId, session.user.id));
 
-      if (userMotelsData.length === 0) {
-        return Response.redirect(new URL("/create-motel", nextUrl));
-      }
-    } catch (error) {
-      console.error("Error checking motels:", error);
-    }
-  }
+  //       if (userMotelsData.length === 0) {
+  //         return Response.redirect(new URL("/create-motel", nextUrl));
+  //       }
+  //     } catch (error) {
+  //       console.error("Error checking motels:", error);
+  //     }
+  //   }
 
   return null;
 });

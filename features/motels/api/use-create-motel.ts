@@ -40,6 +40,8 @@ export const useCreateMotel = () => {
       }
     },
     onSuccess: () => {
+      console.log("Motel created successfully! Redirecting...");
+
       queryClient.invalidateQueries({ queryKey: ["userMotels"] });
 
       router.push("/");

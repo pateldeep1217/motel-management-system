@@ -78,13 +78,13 @@ export const rooms = pgTable("room", {
     .notNull()
     .references(() => motels.id, { onDelete: "cascade" }),
   number: text("number").notNull(),
-  type: text("type"),
-  capacity: integer("capacity"),
-  price: integer("price"),
-  status: roomStatusEnum("status").default("available"),
-  isOccupied: boolean("is_occupied").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  type: text("type").notNull(),
+  capacity: integer("capacity").notNull(),
+  price: integer("price").notNull(),
+  status: roomStatusEnum("status").notNull().default("available"),
+  isOccupied: boolean("is_occupied").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const guests = pgTable("guest", {
