@@ -82,7 +82,7 @@ export const rooms = pgTable("room", {
   capacity: integer("capacity").notNull(),
   price: integer("price").notNull(),
   status: roomStatusEnum("status").notNull().default("available"),
-  isOccupied: boolean("is_occupied").notNull().default(false),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -99,6 +99,7 @@ export const guests = pgTable("guest", {
   phone: text("phone"),
   idProof: text("id_proof").notNull(),
   idProofImageUrl: text("id_proof_image_url"),
+  doNotRent: boolean("do_not_rent").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

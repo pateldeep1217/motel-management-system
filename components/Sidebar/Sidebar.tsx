@@ -11,7 +11,6 @@ import {
 } from "@headlessui/react";
 import { MenuIcon, XIcon } from "lucide-react";
 import SidebarContent from "./SidebarContent";
-import UserButton from "@/features/auth/components/UserButton";
 
 function Sidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

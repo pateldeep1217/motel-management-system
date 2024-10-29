@@ -15,10 +15,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: {},
       },
       async authorize(credentials) {
+        console.log("Authorize method called"); // Check if this log appears
+
         const [user] = await db
           .select()
           .from(users)
           .where(eq(users.email, credentials.email as string));
+        console.log(
+          "Attempting to authorize user with email:",
+          credentials.email
+        );
 
         if (!user) {
           throw new Error("incorrect crenditals");
@@ -75,8 +81,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
           }
 
-          session.user.id = token.id as string;
-          session.user.name = token.name as string;
+          session.user.id = userExists.id.toString();
+          session.user.name = userExists.name;
         } catch (error) {
           console.error("Session check error:", error);
           return {

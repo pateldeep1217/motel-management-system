@@ -35,7 +35,6 @@ const app = new Hono()
             capacity: rooms.capacity,
             price: rooms.price,
             status: rooms.status,
-            isOccupied: rooms.isOccupied,
             motelId: rooms.motelId,
             createdAt: rooms.createdAt,
             updatedAt: rooms.updatedAt,
@@ -127,7 +126,7 @@ const app = new Hono()
             capacity: rooms.capacity,
             price: rooms.price,
             status: rooms.status,
-            isOccupied: rooms.isOccupied,
+
             motelId: rooms.motelId,
             createdAt: rooms.createdAt,
             updatedAt: rooms.updatedAt,

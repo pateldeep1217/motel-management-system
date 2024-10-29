@@ -1,9 +1,9 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGetRooms } from "@/features/motels/api/use-get-rooms";
+import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
 import { columns } from "./columns";
 import { DataTable } from "@/components/DataTable";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 export default function RoomPage() {
@@ -44,7 +44,7 @@ export default function RoomPage() {
     <div className="">
       <Card className="border-none drop-shadow-sm bg-transparent">
         <CardHeader className="gap-y-2 lg:flex-row lg:items-center lg:justify-between">
-          <CardTitle className="text-xl line-clamp-1">Room Page</CardTitle>
+          <CardTitle className="text-xl line-clamp-1">Rooms</CardTitle>
           <Button size="sm">
             <Plus className="size-4 mr-2" />
             Add new

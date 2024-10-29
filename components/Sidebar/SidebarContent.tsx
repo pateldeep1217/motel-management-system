@@ -44,7 +44,7 @@ function SidebarContent() {
           {menuItems.map((item) => (
             <Link href={item.path} key={item.name}>
               <div
-                className={`relative flex items-center gap-2 px-4 py-2 text-base font-medium text-zinc-950 dark:text-white cursor-pointer hover:bg-zinc-800 my-2 ${
+                className={`relative flex items-center gap-2 px-4 py-2 text-base font-medium cursor-pointer dark:hover:bg-zinc-800 dark:hover:text-white my-2 hover:bg-zinc-200 hover:text-zinc-800${
                   activeItem === item.name
                 }`}
               >
