@@ -1,4 +1,16 @@
 DO $$ BEGIN
+ CREATE TYPE "public"."booking_status" AS ENUM('confirmed', 'checked_in', 'checked_out', 'cancelled');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "public"."room_status" AS ENUM('available', 'occupied', 'maintenance', 'cleaning');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
  CREATE TYPE "public"."user_role" AS ENUM('admin', 'staff');
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -11,6 +23,8 @@ CREATE TABLE IF NOT EXISTS "booking" (
 	"guest_id" text NOT NULL,
 	"check_in" timestamp NOT NULL,
 	"check_out" timestamp NOT NULL,
+	"status" "booking_status" DEFAULT 'confirmed',
+	"total_amount" numeric NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
@@ -23,13 +37,13 @@ CREATE TABLE IF NOT EXISTS "guest" (
 	"phone" text,
 	"id_proof" text NOT NULL,
 	"id_proof_image_url" text,
+	"do_not_rent" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "motel" (
 	"id" text PRIMARY KEY NOT NULL,
-	"owner_id" text NOT NULL,
 	"name" text NOT NULL,
 	"address" text,
 	"created_at" timestamp DEFAULT now(),
@@ -40,12 +54,12 @@ CREATE TABLE IF NOT EXISTS "room" (
 	"id" text PRIMARY KEY NOT NULL,
 	"motel_id" text NOT NULL,
 	"number" text NOT NULL,
-	"type" text,
-	"capacity" integer,
-	"price" integer,
-	"is_occupied" boolean DEFAULT false,
-	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now()
+	"type" text NOT NULL,
+	"capacity" integer NOT NULL,
+	"price" integer NOT NULL,
+	"status" "room_status" DEFAULT 'available' NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "session" (
@@ -54,12 +68,20 @@ CREATE TABLE IF NOT EXISTS "session" (
 	"expires" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "user_motels" (
+	"user_id" text NOT NULL,
+	"motel_id" text NOT NULL,
+	"role" "user_role" DEFAULT 'staff',
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "user_motels_user_id_motel_id_pk" PRIMARY KEY("user_id","motel_id")
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text,
 	"email" text,
 	"password" text,
-	"role" "user_role" DEFAULT 'staff',
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "user_email_unique" UNIQUE("email")
@@ -97,12 +119,6 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "motel" ADD CONSTRAINT "motel_owner_id_user_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "room" ADD CONSTRAINT "room_motel_id_motel_id_fk" FOREIGN KEY ("motel_id") REFERENCES "public"."motel"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -110,6 +126,18 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "user_motels" ADD CONSTRAINT "user_motels_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "user_motels" ADD CONSTRAINT "user_motels_motel_id_motel_id_fk" FOREIGN KEY ("motel_id") REFERENCES "public"."motel"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

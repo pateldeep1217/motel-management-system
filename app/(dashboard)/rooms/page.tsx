@@ -6,6 +6,7 @@ import { DataTable } from "@/components/DataTable";
 
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import AddRoomDialog from "@/features/rooms/component/AddRoomDialog";
 export default function RoomPage() {
   const { data: rooms = [], isLoading, error } = useGetRooms();
 
@@ -45,10 +46,7 @@ export default function RoomPage() {
       <Card className="border-none drop-shadow-sm bg-transparent">
         <CardHeader className="gap-y-2 lg:flex-row lg:items-center lg:justify-between">
           <CardTitle className="text-xl line-clamp-1">Rooms</CardTitle>
-          <Button size="sm">
-            <Plus className="size-4 mr-2" />
-            Add new
-          </Button>
+          <AddRoomDialog />
         </CardHeader>
         <CardContent>
           <DataTable columns={columns} data={rooms} />

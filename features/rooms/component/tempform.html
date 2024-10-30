@@ -1,0 +1,221 @@
+<!-- Backdrop -->
+<div
+  class="fixed inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in-0"
+>
+  <div class="fixed inset-0 flex items-center justify-center">
+    <!-- Modal -->
+    <div
+      class="relative w-full max-w-lg animate-in fade-in-0 zoom-in-95 duration-200"
+    >
+      <div
+        class="w-full bg-card text-card-foreground rounded-lg shadow-lg border"
+      >
+        <!-- Header -->
+        <div class="flex items-center p-6 border-b">
+          <div class="flex items-center gap-2">
+            <div class="p-2 rounded-full bg-primary/10 text-primary">
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                ></path>
+              </svg>
+            </div>
+            <h2 class="text-lg font-semibold">Add New Room</h2>
+          </div>
+          <button
+            class="ml-auto hover:bg-accent hover:text-accent-foreground p-1.5 rounded-md"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 space-y-4">
+          <!-- Room Details -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label
+                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Room Number
+              </label>
+              <input
+                type="text"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="101"
+              />
+            </div>
+            <div class="space-y-2">
+              <label
+                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Floor
+              </label>
+              <select
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option>Ground Floor</option>
+                <option>First Floor</option>
+                <option>Second Floor</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Room Type -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Room Type</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+              >
+                Single
+              </button>
+              <button
+                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+              >
+                Double
+              </button>
+              <button
+                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+              >
+                Suite
+              </button>
+            </div>
+          </div>
+
+          <!-- Pricing -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none"
+              >Price per Night</label
+            >
+            <div class="relative">
+              <span
+                class="absolute left-3 top-2.5 text-muted-foreground text-sm"
+                >$</span
+              >
+              <input
+                type="number"
+                class="flex h-10 w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <!-- Features -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Features</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label
+                class="flex items-center gap-2 p-3 rounded-lg border border-input bg-background hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+                />
+                <span class="text-sm">Air Conditioning</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-3 rounded-lg border border-input bg-background hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+                />
+                <span class="text-sm">Ocean View</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-3 rounded-lg border border-input bg-background hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+                />
+                <span class="text-sm">Mini Bar</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-3 rounded-lg border border-input bg-background hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+                />
+                <span class="text-sm">Room Service</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Status</label>
+            <div class="grid grid-cols-3 gap-2">
+              <label
+                class="flex items-center gap-2 p-3 rounded-lg border border-input bg-background hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  class="h-4 w-4 border-primary text-primary focus:ring-primary"
+                />
+                <span class="text-sm">Available</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-3 rounded-lg border border-input bg-background hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  class="h-4 w-4 border-primary text-primary focus:ring-primary"
+                />
+                <span class="text-sm">Occupied</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-3 rounded-lg border border-input bg-background hover:bg-accent cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  class="h-4 w-4 border-primary text-primary focus:ring-primary"
+                />
+                <span class="text-sm">Maintenance</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-2 p-6 border-t">
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+          >
+            Cancel
+          </button>
+          <button
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
