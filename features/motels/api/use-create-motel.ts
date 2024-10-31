@@ -15,33 +15,15 @@ export const useCreateMotel = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const mutation = useMutation<ResponseType, Error, RequestType>({
-    mutationFn: async (motelData) => {
-      const response = await client.api.motels.create.$post({
-        json: motelData,
-      });
-      console.log("Full response:", response); // Log the full response
+    mutationFn: async (json) => {
+      const response = await client.api.motels.create.$post({ json });
 
-      // If the response is successful, parse the JSON body
-      if (response.ok) {
-        try {
-          const contentType = response.headers.get("Content-Type");
-          if (contentType && contentType.includes("application/json")) {
-            const data = await response.json();
-            return data; // Ensure this matches the expected response
-          } else {
-            throw new Error("Received non-JSON response");
-          }
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-          throw new Error("Invalid JSON response");
-        }
-      } else {
-        throw new Error("Failed to create motel");
+      if (!response.ok) {
+        throw new Error("Invalid JSON response");
       }
+      return await response.json();
     },
     onSuccess: () => {
-      console.log("Motel created successfully! Redirecting...");
-
       queryClient.invalidateQueries({ queryKey: ["userMotels"] });
 
       router.push("/");

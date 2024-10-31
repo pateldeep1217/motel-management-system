@@ -3,6 +3,7 @@ import { handle } from "hono/vercel";
 import { AuthConfig, initAuthConfig } from "@hono/auth-js";
 import motels from "./motels";
 import rooms from "./rooms";
+import guests from "./guests";
 
 import { auth } from "@/auth";
 
@@ -18,7 +19,10 @@ const app = new Hono().basePath("/api");
 
 app.use("*", initAuthConfig(getAuthConfig));
 
-const routes = app.route("/motels", motels).route("/rooms", rooms);
+const routes = app
+  .route("/motels", motels)
+  .route("/rooms", rooms)
+  .route("/guests", guests);
 
 export const GET = handle(app);
 export const POST = handle(app);

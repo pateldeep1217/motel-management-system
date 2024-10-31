@@ -2,7 +2,6 @@ import {
   boolean,
   integer,
   numeric,
-  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -12,22 +11,34 @@ import { createInsertSchema } from "drizzle-zod";
 
 import { relations } from "drizzle-orm";
 
-export const userRoleEnum = pgEnum("user_role", ["admin", "staff"]);
-export const roomStatusEnum = pgEnum("room_status", [
-  "available",
-  "occupied",
-  "maintenance",
-  "cleaning",
-]);
+export const userRoles = pgTable("user_roles", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  role: text("role").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-export const bookingStatusEnum = pgEnum("booking_status", [
-  "confirmed",
-  "checked_in",
-  "checked_out",
-  "cancelled",
-]);
+export const roomStatuses = pgTable("room_statuses", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
-export const users = pgTable("user", {
+export const bookingStatuses = pgTable("booking_statuses", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const users = pgTable("users", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -38,7 +49,7 @@ export const users = pgTable("user", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const sessions = pgTable("session", {
+export const sessions = pgTable("sessions", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
     .notNull()
@@ -47,7 +58,7 @@ export const sessions = pgTable("session", {
 });
 
 export const verificationTokens = pgTable(
-  "verificationToken",
+  "verificationTokens",
   {
     identifier: text("identifier").notNull(),
     token: text("token").notNull(),
@@ -60,7 +71,7 @@ export const verificationTokens = pgTable(
   })
 );
 
-export const motels = pgTable("motel", {
+export const motels = pgTable("motels", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -70,7 +81,7 @@ export const motels = pgTable("motel", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const rooms = pgTable("room", {
+export const rooms = pgTable("rooms", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -81,13 +92,15 @@ export const rooms = pgTable("room", {
   type: text("type").notNull(),
   capacity: integer("capacity").notNull(),
   price: integer("price").notNull(),
-  status: roomStatusEnum("status").notNull().default("available"),
+  statusId: text("status_id").references(() => roomStatuses.id, {
+    onDelete: "cascade",
+  }),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const guests = pgTable("guest", {
+export const guests = pgTable("guests", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -104,7 +117,7 @@ export const guests = pgTable("guest", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const bookings = pgTable("booking", {
+export const bookings = pgTable("bookings", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -119,7 +132,9 @@ export const bookings = pgTable("booking", {
     .references(() => guests.id, { onDelete: "cascade" }),
   checkIn: timestamp("check_in", { mode: "date" }).notNull(),
   checkOut: timestamp("check_out", { mode: "date" }).notNull(),
-  status: bookingStatusEnum("status").default("confirmed"),
+  bookingStatusId: text("booking_status_id")
+    .notNull()
+    .references(() => bookingStatuses.id, { onDelete: "cascade" }),
   totalAmount: numeric("total_amount").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -134,7 +149,9 @@ export const userMotels = pgTable(
     motelId: text("motel_id")
       .notNull()
       .references(() => motels.id, { onDelete: "cascade" }),
-    role: userRoleEnum("role").default("staff"),
+    roleId: text("role_id").references(() => userRoles.id, {
+      onDelete: "cascade",
+    }),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
@@ -146,11 +163,11 @@ export const userMotels = pgTable(
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
-  motels: many(userMotels), // connects to motels via user_motels
+  motels: many(userMotels),
 }));
 
 export const motelsRelations = relations(motels, ({ many }) => ({
-  users: many(userMotels), // connects to users via user_motels
+  users: many(userMotels),
   rooms: many(rooms),
   guests: many(guests),
   bookings: many(bookings),
@@ -158,6 +175,10 @@ export const motelsRelations = relations(motels, ({ many }) => ({
 
 export const roomsRelations = relations(rooms, ({ one, many }) => ({
   motel: one(motels, { fields: [rooms.motelId], references: [motels.id] }),
+  status: one(roomStatuses, {
+    fields: [rooms.statusId],
+    references: [roomStatuses.id],
+  }),
   bookings: many(bookings),
 }));
 
@@ -170,8 +191,22 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   motel: one(motels, { fields: [bookings.motelId], references: [motels.id] }),
   room: one(rooms, { fields: [bookings.roomId], references: [rooms.id] }),
   guest: one(guests, { fields: [bookings.guestId], references: [guests.id] }),
+  status: one(bookingStatuses, {
+    fields: [bookings.bookingStatusId],
+    references: [bookingStatuses.id],
+  }),
 }));
 
+export const roomStatusesRelations = relations(roomStatuses, ({ many }) => ({
+  rooms: many(rooms),
+}));
+
+export const bookingStatusesRelations = relations(
+  bookingStatuses,
+  ({ many }) => ({
+    bookings: many(bookings),
+  })
+);
 export const userInsertSchema = createInsertSchema(users);
 export const motelInsertSchema = createInsertSchema(motels);
 export const roomInsertSchema = createInsertSchema(rooms);

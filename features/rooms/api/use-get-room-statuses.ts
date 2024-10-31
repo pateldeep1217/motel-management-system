@@ -4,9 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useGetRoomStatuses = () => {
   return useQuery({
-    queryKey: ["rooms"],
+    queryKey: ["roomStatuses"],
     queryFn: async () => {
-      const response = await client.api.rooms.status.$get();
+      const response = await client.api.rooms.statuses.$get();
 
       if (!response.ok) {
         throw new Error("Failed to fetch rooms");

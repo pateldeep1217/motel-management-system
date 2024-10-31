@@ -66,6 +66,23 @@ export const columns: ColumnDef<ResponseType>[] = [
         <CheckCircle className="text-green-500" size={18} />
       ),
   },
+  {
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => {
+      const createdAt = new Date(row.getValue("createdAt"));
+      const formattedDate = createdAt.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      return <div>{formattedDate}</div>;
+    },
+  },
 
   {
     id: "actions",

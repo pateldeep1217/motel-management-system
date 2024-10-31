@@ -28,14 +28,14 @@ export const AddRoomDialog = () => {
           Add New Room
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="min-w-[40rem]">
         <DialogHeader>
-          <DialogTitle>Add Room</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="m-auto lg:pt-14">Add Room</DialogTitle>
+          <DialogDescription className="m-auto ">
             Fill in the details to add a new room.
           </DialogDescription>
         </DialogHeader>
-        <RoomForm />
+        <RoomForm onSubmit={onSubmit} />
       </DialogContent>
     </Dialog>
   );

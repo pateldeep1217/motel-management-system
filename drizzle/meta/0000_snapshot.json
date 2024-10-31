@@ -1,11 +1,47 @@
 {
-  "id": "01a1b107-f3e7-4ba8-9b1b-c391438930df",
+  "id": "979c27b8-cb4a-4016-a58a-2e6de37153f5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.booking": {
-      "name": "booking",
+    "public.booking_statuses": {
+      "name": "booking_statuses",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.bookings": {
+      "name": "bookings",
       "schema": "",
       "columns": {
         "id": {
@@ -44,13 +80,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "status": {
-          "name": "status",
-          "type": "booking_status",
-          "typeSchema": "public",
+        "booking_status_id": {
+          "name": "booking_status_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'confirmed'"
+          "notNull": true
         },
         "total_amount": {
           "name": "total_amount",
@@ -75,10 +109,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "booking_motel_id_motel_id_fk": {
-          "name": "booking_motel_id_motel_id_fk",
-          "tableFrom": "booking",
-          "tableTo": "motel",
+        "bookings_motel_id_motels_id_fk": {
+          "name": "bookings_motel_id_motels_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "motels",
           "columnsFrom": [
             "motel_id"
           ],
@@ -88,10 +122,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "booking_room_id_room_id_fk": {
-          "name": "booking_room_id_room_id_fk",
-          "tableFrom": "booking",
-          "tableTo": "room",
+        "bookings_room_id_rooms_id_fk": {
+          "name": "bookings_room_id_rooms_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "rooms",
           "columnsFrom": [
             "room_id"
           ],
@@ -101,12 +135,25 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "booking_guest_id_guest_id_fk": {
-          "name": "booking_guest_id_guest_id_fk",
-          "tableFrom": "booking",
-          "tableTo": "guest",
+        "bookings_guest_id_guests_id_fk": {
+          "name": "bookings_guest_id_guests_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "guests",
           "columnsFrom": [
             "guest_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "bookings_booking_status_id_booking_statuses_id_fk": {
+          "name": "bookings_booking_status_id_booking_statuses_id_fk",
+          "tableFrom": "bookings",
+          "tableTo": "booking_statuses",
+          "columnsFrom": [
+            "booking_status_id"
           ],
           "columnsTo": [
             "id"
@@ -118,8 +165,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.guest": {
-      "name": "guest",
+    "public.guests": {
+      "name": "guests",
       "schema": "",
       "columns": {
         "id": {
@@ -188,10 +235,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "guest_motel_id_motel_id_fk": {
-          "name": "guest_motel_id_motel_id_fk",
-          "tableFrom": "guest",
-          "tableTo": "motel",
+        "guests_motel_id_motels_id_fk": {
+          "name": "guests_motel_id_motels_id_fk",
+          "tableFrom": "guests",
+          "tableTo": "motels",
           "columnsFrom": [
             "motel_id"
           ],
@@ -205,8 +252,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.motel": {
-      "name": "motel",
+    "public.motels": {
+      "name": "motels",
       "schema": "",
       "columns": {
         "id": {
@@ -247,8 +294,44 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.room": {
-      "name": "room",
+    "public.room_statuses": {
+      "name": "room_statuses",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.rooms": {
+      "name": "rooms",
       "schema": "",
       "columns": {
         "id": {
@@ -287,13 +370,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "status": {
-          "name": "status",
-          "type": "room_status",
-          "typeSchema": "public",
+        "status_id": {
+          "name": "status_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'available'"
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -312,12 +393,25 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "room_motel_id_motel_id_fk": {
-          "name": "room_motel_id_motel_id_fk",
-          "tableFrom": "room",
-          "tableTo": "motel",
+        "rooms_motel_id_motels_id_fk": {
+          "name": "rooms_motel_id_motels_id_fk",
+          "tableFrom": "rooms",
+          "tableTo": "motels",
           "columnsFrom": [
             "motel_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "rooms_status_id_room_statuses_id_fk": {
+          "name": "rooms_status_id_room_statuses_id_fk",
+          "tableFrom": "rooms",
+          "tableTo": "room_statuses",
+          "columnsFrom": [
+            "status_id"
           ],
           "columnsTo": [
             "id"
@@ -329,8 +423,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.session": {
-      "name": "session",
+    "public.sessions": {
+      "name": "sessions",
       "schema": "",
       "columns": {
         "sessionToken": {
@@ -354,10 +448,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "session_userId_user_id_fk": {
-          "name": "session_userId_user_id_fk",
-          "tableFrom": "session",
-          "tableTo": "user",
+        "sessions_userId_users_id_fk": {
+          "name": "sessions_userId_users_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "users",
           "columnsFrom": [
             "userId"
           ],
@@ -387,13 +481,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "role": {
-          "name": "role",
-          "type": "user_role",
-          "typeSchema": "public",
+        "role_id": {
+          "name": "role_id",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'staff'"
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -412,10 +504,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "user_motels_user_id_user_id_fk": {
-          "name": "user_motels_user_id_user_id_fk",
+        "user_motels_user_id_users_id_fk": {
+          "name": "user_motels_user_id_users_id_fk",
           "tableFrom": "user_motels",
-          "tableTo": "user",
+          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
@@ -425,12 +517,25 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "user_motels_motel_id_motel_id_fk": {
-          "name": "user_motels_motel_id_motel_id_fk",
+        "user_motels_motel_id_motels_id_fk": {
+          "name": "user_motels_motel_id_motels_id_fk",
           "tableFrom": "user_motels",
-          "tableTo": "motel",
+          "tableTo": "motels",
           "columnsFrom": [
             "motel_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_motels_role_id_user_roles_id_fk": {
+          "name": "user_motels_role_id_user_roles_id_fk",
+          "tableFrom": "user_motels",
+          "tableTo": "user_roles",
+          "columnsFrom": [
+            "role_id"
           ],
           "columnsTo": [
             "id"
@@ -450,8 +555,44 @@
       },
       "uniqueConstraints": {}
     },
-    "public.user": {
-      "name": "user",
+    "public.user_roles": {
+      "name": "user_roles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.users": {
+      "name": "users",
       "schema": "",
       "columns": {
         "id": {
@@ -497,8 +638,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "user_email_unique": {
-          "name": "user_email_unique",
+        "users_email_unique": {
+          "name": "users_email_unique",
           "nullsNotDistinct": false,
           "columns": [
             "email"
@@ -506,8 +647,8 @@
         }
       }
     },
-    "public.verificationToken": {
-      "name": "verificationToken",
+    "public.verificationTokens": {
+      "name": "verificationTokens",
       "schema": "",
       "columns": {
         "identifier": {
@@ -532,8 +673,8 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "verificationToken_identifier_token_pk": {
-          "name": "verificationToken_identifier_token_pk",
+        "verificationTokens_identifier_token_pk": {
+          "name": "verificationTokens_identifier_token_pk",
           "columns": [
             "identifier",
             "token"
@@ -543,36 +684,7 @@
       "uniqueConstraints": {}
     }
   },
-  "enums": {
-    "public.booking_status": {
-      "name": "booking_status",
-      "schema": "public",
-      "values": [
-        "confirmed",
-        "checked_in",
-        "checked_out",
-        "cancelled"
-      ]
-    },
-    "public.room_status": {
-      "name": "room_status",
-      "schema": "public",
-      "values": [
-        "available",
-        "occupied",
-        "maintenance",
-        "cleaning"
-      ]
-    },
-    "public.user_role": {
-      "name": "user_role",
-      "schema": "public",
-      "values": [
-        "admin",
-        "staff"
-      ]
-    }
-  },
+  "enums": {},
   "schemas": {},
   "sequences": {},
   "_meta": {

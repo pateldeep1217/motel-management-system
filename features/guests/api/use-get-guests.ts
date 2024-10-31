@@ -12,9 +12,8 @@ export const useGetGuests = () => {
           limit: "10",
         },
       });
-
       if (!response.ok) {
-        throw new Error("Failed to fetch rooms");
+        throw new Error("Failed to fetch guests");
       }
 
       const { data } = await response.json();
