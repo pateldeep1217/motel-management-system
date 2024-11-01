@@ -231,7 +231,7 @@ export default function Component() {
         <StatCard title="Cleaning" value={stats.cleaning} variant="warning" />
       </div>
 
-      <Card className="bg-transparent border-0">
+      <Card className="bg-transparent border-0 ">
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:flex-1">
@@ -310,7 +310,7 @@ function StatCard({
   };
 
   return (
-    <Card>
+    <Card className="bg-[#0B0F17] ">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>

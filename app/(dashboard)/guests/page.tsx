@@ -71,8 +71,8 @@ export default function GuestsPage() {
   return (
     <div className="space-y-4">
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3  ">
+        <Card className="bg-[#0B0F17]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Guests</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -81,7 +81,7 @@ export default function GuestsPage() {
             <div className="text-2xl font-bold">{totalGuests}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#0B0F17]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Allowed to Rent
@@ -94,7 +94,7 @@ export default function GuestsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#0B0F17]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Blacklisted</CardTitle>
             <UserMinus2 className="h-4 w-4 text-muted-foreground" />
