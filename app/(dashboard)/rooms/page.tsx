@@ -4,8 +4,7 @@ import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
 import { columns } from "./columns";
 import { DataTable } from "@/components/DataTable";
 
-import { Loader2, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import AddRoomDialog from "@/features/rooms/component/AddRoomDialog";
 export default function RoomPage() {
   const { data: rooms = [], isLoading, error } = useGetRooms();

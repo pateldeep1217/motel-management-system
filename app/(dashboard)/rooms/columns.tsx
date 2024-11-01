@@ -12,20 +12,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-// Define the Room type
-export type Room = {
-  id: string;
-  number: string;
-  type: string;
-  capacity: number;
-  price: number;
-  status: "available" | "occupied" | "maintenance" | "cleaning";
-  motelId: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { InferResponseType } from "hono";
+import { client } from "@/lib/hono";
 
-export const columns: ColumnDef<Room>[] = [
+export type ResponseType = InferResponseType<
+  typeof client.api.rooms.$get,
+  200
+>["data"][0];
+
+export const columns: ColumnDef<ResponseType>[] = [
   {
     accessorKey: "number",
     header: "Room Number",
@@ -51,11 +46,19 @@ export const columns: ColumnDef<Room>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as Room["status"];
+      // Since the API is already joining with roomStatuses table and returning the status field
+      // We can directly use the status value from the row
+      const status = row.getValue("status") as string;
 
       return (
-        <Badge variant={status}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+        <Badge
+          variant={
+            status as "available" | "occupied" | "maintenance" | "cleaning"
+          }
+        >
+          {status
+            ? status.charAt(0).toUpperCase() + status.slice(1)
+            : "Unknown"}
         </Badge>
       );
     },

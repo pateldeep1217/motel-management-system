@@ -21,7 +21,7 @@ const app = new Hono()
           type: rooms.type,
           capacity: rooms.capacity,
           price: rooms.price,
-          status: rooms.statusId,
+          status: roomStatuses.status,
           motelId: rooms.motelId,
           createdAt: rooms.createdAt,
           updatedAt: rooms.updatedAt,

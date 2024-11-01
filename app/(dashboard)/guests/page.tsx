@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 
 import AddRoomDialog from "@/features/rooms/component/AddRoomDialog";
 import { useGetGuests } from "@/features/guests/api/use-get-guests";
+import AddGuestDialog from "@/features/guests/api/components/AddGuestDialog";
 
 export default function GuestsPage() {
   const { data: rooms = [], isLoading, error } = useGetGuests();
@@ -47,8 +48,8 @@ export default function GuestsPage() {
     <div className="">
       <Card className="border-none drop-shadow-sm bg-transparent">
         <CardHeader className="gap-y-2 lg:flex-row lg:items-center lg:justify-between">
-          <CardTitle className="text-xl line-clamp-1">Rooms</CardTitle>
-          <AddRoomDialog />
+          <CardTitle className="text-xl line-clamp-1">Guests</CardTitle>
+          <AddGuestDialog />
         </CardHeader>
         <CardContent>
           <DataTable columns={columns} data={rooms} />
