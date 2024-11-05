@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Hono } from "hono";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, and } from "drizzle-orm";
 import { verifyAuth } from "@hono/auth-js";
 import { zValidator } from "@hono/zod-validator";
 
@@ -37,6 +37,12 @@ const app = new Hono().get(
         })
         .from(guests)
         .innerJoin(userMotels, eq(guests.motelId, userMotels.motelId))
+        .where(
+          and(
+            eq(userMotels.userId, auth.token.id as string),
+            eq(guests.motelId, userMotels.motelId)
+          )
+        )
         .limit(limit)
         .offset((page - 1) * limit)
         .orderBy(asc(guests.doNotRent), desc(guests.createdAt));

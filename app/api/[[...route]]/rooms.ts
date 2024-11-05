@@ -3,7 +3,14 @@ import { eq, asc } from "drizzle-orm";
 import { verifyAuth } from "@hono/auth-js";
 
 import { db } from "@/db";
-import { rooms, userMotels, roomStatuses } from "@/db/schema";
+import {
+  rooms,
+  userMotels,
+  roomStatuses,
+  roomInsertSchema,
+  motels,
+} from "@/db/schema";
+import { zValidator } from "@hono/zod-validator";
 
 const app = new Hono()
   .get("/", verifyAuth(), async (c) => {
@@ -66,6 +73,37 @@ const app = new Hono()
       console.error("Error fetching statues", error);
       return c.json({ error: "Internal server error" }, 500);
     }
+  })
+  .post("/", zValidator("json", roomInsertSchema), async (c) => {
+    const auth = c.get("authUser");
+
+    const values = c.req.valid("json");
+
+    if (!auth.token?.id) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const userMotel = await db
+      .select()
+      .from(userMotels)
+      .where(eq(userMotels.userId, auth.token.id as string));
+
+    console.log(userMotel);
+
+    const data = await db
+      .insert(rooms)
+      .values({
+        ...values,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    if (!data[0]) {
+      return c.json({ error: "Something went wrong" }, 400);
+    }
+
+    return c.json({ data: data[0] });
   });
 
 export default app;
