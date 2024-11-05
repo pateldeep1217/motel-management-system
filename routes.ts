@@ -1,6 +1,4 @@
-export const publicRoutes = [];
-export const authRoutes = ["/sign-in", "/sign-up"];
-
-export const apiAuthPrefix = "/api/auth";
-
-export const DEFAULT_LOGIN_REDIRECT = "/";
+// routes.ts
+export const DEFAULT_REDIRECT = "/";
+export const PUBLIC_ROUTES = ["/sign-in", "/sign-up"];
+export const ROOT = "/sign-in";
