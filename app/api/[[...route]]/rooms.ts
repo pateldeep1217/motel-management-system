@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, desc, and } from "drizzle-orm";
 import { verifyAuth } from "@hono/auth-js";
 
 import { db } from "@/db";
@@ -11,6 +11,7 @@ import {
   motels,
 } from "@/db/schema";
 import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
 const app = new Hono()
   .get("/", verifyAuth(), async (c) => {
@@ -19,6 +20,7 @@ const app = new Hono()
     if (!auth.token?.id) {
       return c.json({ error: "Unauthorized" }, 401);
     }
+    console.log("hit");
 
     try {
       const query = db
@@ -74,26 +76,36 @@ const app = new Hono()
       return c.json({ error: "Internal server error" }, 500);
     }
   })
-  .post("/", zValidator("json", roomInsertSchema), async (c) => {
+  .post("/", verifyAuth(), zValidator("json", roomInsertSchema), async (c) => {
     const auth = c.get("authUser");
 
     const values = c.req.valid("json");
-
-    if (!auth.token?.id) {
+    console.log("values", values);
+    if (!auth || !auth.token?.id) {
       return c.json({ error: "Unauthorized" }, 401);
     }
 
-    const userMotel = await db
+    console.log("auth: ", auth.token.id);
+    const [userMotel] = await db
       .select()
       .from(userMotels)
       .where(eq(userMotels.userId, auth.token.id as string));
 
+    const [statusRecord] = await db
+      .select()
+      .from(roomStatuses)
+      .where(eq(roomStatuses.status, values.statusId as string));
     console.log(userMotel);
 
     const data = await db
       .insert(rooms)
       .values({
-        ...values,
+        number: values.number,
+        price: values.price,
+        statusId: statusRecord.id,
+        type: values.type,
+        capacity: values.capacity,
+        motelId: userMotel.motelId,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -104,6 +116,52 @@ const app = new Hono()
     }
 
     return c.json({ data: data[0] });
-  });
+  })
+  .delete(
+    "/:id",
+    verifyAuth(),
+    zValidator(
+      "param",
+      z.object({
+        id: z.string().optional(),
+      })
+    ),
+    async (c) => {
+      const auth = c.get("authUser");
+      const { id } = c.req.valid("param");
+
+      if (!auth || !auth.token?.id) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
+
+      try {
+        const [userMotel] = await db
+          .select()
+          .from(userMotels)
+          .where(eq(userMotels.userId, auth.token.id as string));
+
+        const [data] = await db
+          .delete(rooms)
+          .where(
+            and(
+              eq(rooms.id, id as string),
+              eq(rooms.motelId, userMotel.motelId)
+            )
+          )
+          .returning({
+            id: rooms.id,
+          });
+
+        if (!data) {
+          return c.json({ error: "Room not found" }, 404);
+        }
+
+        return c.json({ data });
+      } catch (error) {
+        console.error("Error deleting room:", error);
+        return c.json({ error: "Internal server error" }, 500);
+      }
+    }
+  );
 
 export default app;

@@ -1,12 +1,9 @@
 "use client";
 
-import { z } from "zod";
-import { Trash } from "lucide-react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,6 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,157 +20,133 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetRoomStatuses } from "../api/use-get-room-statuses";
 
 const roomSchema = z.object({
-  roomNumber: z.string().min(1, "Room number is required"),
+  number: z.string().min(1, "Room number is required"),
+  price: z.string().min(1, "Price is required"),
+  statusId: z.string().min(1, "Status is required"),
   type: z.string().min(1, "Room type is required"),
-  price: z.number().positive("Price must be a positive number"),
-  status: z.string().min(1, "Status is required"),
+  capacity: z.number().int().min(1, "Capacity must be at least 1"),
 });
 
 type RoomFormValues = z.infer<typeof roomSchema>;
 
-type RoomFormProps = {
-  id?: string;
-  defaultValues?: RoomFormValues;
-  disabled?: boolean;
-  onSubmit: (values: RoomFormValues) => void;
-  onDelete?: () => void;
-};
+interface RoomFormProps {
+  onSubmit: (data: RoomFormValues) => void;
+  isLoading: boolean;
+}
 
-export default function RoomForm({
-  id,
-  defaultValues,
-  disabled,
-  onSubmit,
-  onDelete,
-}: RoomFormProps) {
+export function RoomForm({ onSubmit, isLoading }: RoomFormProps) {
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomSchema),
-    defaultValues: defaultValues || {
-      roomNumber: "",
+    defaultValues: {
+      number: "",
+      price: "",
+      statusId: "",
       type: "",
-      price: 0,
-      status: "",
+      capacity: 1,
     },
   });
 
-  const { data: statuses = [] } = useGetRoomStatuses();
-
   return (
-    <div className="lg:p-14 lg:pt-0">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            <FormField
-              name="roomNumber"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Room Number</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={disabled}
-                      placeholder="e.g., 101"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              name="type"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={disabled}
-                      placeholder="e.g., Single, Double"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              name="price"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={disabled}
-                      placeholder="e.g., 100"
-                      type="text"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              name="status"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    disabled={disabled}
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {statuses.map((status) => (
-                        <SelectItem key={status.id} value={status.status}>
-                          {status.status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <DialogFooter className="gap-4 sm:gap-0">
-            {id && (
-              <Button
-                type="button"
-                disabled={disabled}
-                onClick={onDelete}
-                variant="destructive"
-                className="w-full sm:w-auto"
-              >
-                <Trash className="mr-2 size-4" />
-                Delete room
-              </Button>
-            )}
-            <Button
-              type="submit"
-              disabled={disabled}
-              className="w-full sm:w-auto"
-            >
-              {id ? "Save changes" : "Create room"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </Form>
-    </div>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6   px-1 "
+      >
+        <FormField
+          control={form.control}
+          name="number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Room Number</FormLabel>
+              <FormControl>
+                <Input placeholder="101" type="text" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Price</FormLabel>
+              <FormControl>
+                <Input placeholder="100" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="statusId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="occupied">Occupied</SelectItem>
+                  <SelectItem value="cleaning">Cleaning</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Room Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a room type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="single">Single</SelectItem>
+                  <SelectItem value="double">Double</SelectItem>
+                  <SelectItem value="suite">Suite</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="capacity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Capacity</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="2"
+                  type="number"
+                  {...field}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Creating..." : "Create Room"}
+        </Button>
+      </form>
+    </Form>
   );
 }

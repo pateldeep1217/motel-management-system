@@ -2,18 +2,11 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+
 import { InferResponseType } from "hono";
 import { client } from "@/lib/hono";
+
+import { Actions } from "./actions";
 
 export type ResponseType = InferResponseType<
   typeof client.api.rooms.$get,
@@ -46,8 +39,6 @@ export const columns: ColumnDef<ResponseType>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      // Since the API is already joining with roomStatuses table and returning the status field
-      // We can directly use the status value from the row
       const status = row.getValue("status") as string;
 
       return (
@@ -65,22 +56,6 @@ export const columns: ColumnDef<ResponseType>[] = [
   },
   {
     id: "actions",
-    cell: () => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Edit room</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <Actions id={row.original.id} />,
   },
 ];

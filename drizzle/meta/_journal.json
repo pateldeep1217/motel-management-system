@@ -8,6 +8,13 @@
       "when": 1730321724573,
       "tag": "0000_normal_makkari",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1730906272293,
+      "tag": "0001_cultured_tattoo",
+      "breakpoints": true
     }
   ]
 }

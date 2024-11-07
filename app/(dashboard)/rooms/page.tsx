@@ -167,8 +167,9 @@ import {
 } from "@/components/ui/select";
 import { DataTable } from "@/components/DataTable";
 import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
-import AddRoomDialog from "@/features/rooms/component/AddRoomDialog";
+
 import { columns } from "./columns";
+import { RoomSheet } from "@/features/rooms/component/RoomSheet";
 
 export default function Component() {
   const { data: rooms = [], isLoading, error, refetch } = useGetRooms();
@@ -281,7 +282,7 @@ export default function Component() {
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
-              <AddRoomDialog />
+              <RoomSheet />
             </div>
           </div>
         </CardHeader>

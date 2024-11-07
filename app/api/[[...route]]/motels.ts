@@ -11,6 +11,7 @@ const app = new Hono()
 
   .get("/", verifyAuth(), async (c) => {
     const auth = c.get("authUser");
+    console.log("motel auth: ", auth);
 
     if (!auth.token?.id) {
       return c.json({ error: "Unauthorized" }, 401);
@@ -23,6 +24,8 @@ const app = new Hono()
         .innerJoin(motels, eq(userMotels.motelId, motels.id))
         .where(eq(userMotels.userId, auth.token.id as string))
         .orderBy(desc(motels.createdAt));
+
+      console.log(data);
 
       return c.json({
         data,
@@ -41,6 +44,8 @@ const app = new Hono()
       const auth = c.get("authUser");
       const values = c.req.valid("json");
 
+      console.log("Auth: ", auth);
+      console.log("values: ", values);
       if (!auth.token?.id) {
         return c.json({ error: "Unauthorized" }, 401);
       }

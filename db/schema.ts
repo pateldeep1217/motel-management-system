@@ -10,6 +10,13 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 
 import { relations } from "drizzle-orm";
+import { z } from "zod";
+
+const capitalizeWords = (str) =>
+  str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 
 export const userRoles = pgTable("user_roles", {
   id: text("id")
@@ -85,13 +92,13 @@ export const rooms = pgTable("rooms", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  motelId: text("motel_id")
-    .notNull()
-    .references(() => motels.id, { onDelete: "cascade" }),
+  motelId: text("motel_id").references(() => motels.id, {
+    onDelete: "cascade",
+  }),
   number: text("number").notNull(),
   type: text("type").notNull(),
   capacity: integer("capacity").notNull(),
-  price: integer("price").notNull(),
+  price: text("price").notNull(),
   statusId: text("status_id").references(() => roomStatuses.id, {
     onDelete: "cascade",
   }),
@@ -209,7 +216,9 @@ export const bookingStatusesRelations = relations(
 );
 export const userInsertSchema = createInsertSchema(users);
 export const motelInsertSchema = createInsertSchema(motels);
-export const roomInsertSchema = createInsertSchema(rooms);
+export const roomInsertSchema = createInsertSchema(rooms).extend({
+  type: z.string().transform(capitalizeWords),
+});
 export const guestInsertSchema = createInsertSchema(guests);
 export const bookingInsertSchema = createInsertSchema(bookings);
 export const userMotelInsertSchema = createInsertSchema(userMotels);
