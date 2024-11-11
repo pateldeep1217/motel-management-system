@@ -7,6 +7,7 @@ import { InferResponseType } from "hono";
 import { client } from "@/lib/hono";
 
 import { Actions } from "./actions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type ResponseType = InferResponseType<
   typeof client.api.rooms.$get,
@@ -14,6 +15,28 @@ export type ResponseType = InferResponseType<
 >["data"][0];
 
 export const columns: ColumnDef<ResponseType>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "number",
     header: "Room Number",

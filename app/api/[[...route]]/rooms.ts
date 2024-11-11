@@ -1,15 +1,9 @@
 import { Hono } from "hono";
-import { eq, asc, desc, and } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { verifyAuth } from "@hono/auth-js";
 
 import { db } from "@/db";
-import {
-  rooms,
-  userMotels,
-  roomStatuses,
-  roomInsertSchema,
-  motels,
-} from "@/db/schema";
+import { rooms, userMotels, roomStatuses, roomInsertSchema } from "@/db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
@@ -67,7 +61,13 @@ const app = new Hono()
         .from(roomStatuses)
         .orderBy(asc(roomStatuses.status));
 
-      const data = await query;
+      const rawData = await query;
+      const data = rawData.map((status) => ({
+        ...status,
+        status: status.status
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase()),
+      }));
       return c.json({
         data,
       });

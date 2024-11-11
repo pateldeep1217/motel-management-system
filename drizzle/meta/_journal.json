@@ -15,6 +15,13 @@
       "when": 1730906272293,
       "tag": "0001_cultured_tattoo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1731256237387,
+      "tag": "0002_naive_phantom_reporter",
+      "breakpoints": true
     }
   ]
 }

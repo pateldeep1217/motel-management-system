@@ -1,19 +1,19 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { columns } from "./columns";
-import { DataTable } from "@/components/DataTable";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
+import { useState } from "react";
 import {
+  Search,
   Download,
-  Loader2,
   RefreshCcw,
+  Plus,
+  Users,
   UserCheck2,
   UserMinus2,
-  Users,
 } from "lucide-react";
-import { useGetGuests } from "@/features/guests/api/use-get-guests";
-import AddGuestDialog from "@/features/guests/api/components/AddGuestDialog";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -21,124 +21,138 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { DataTable } from "@/components/DataTable";
+import { useGetGuests } from "@/features/guests/api/use-get-guests";
+import { columns } from "./columns";
+// import { useNewGuest } from "@/features/guests/hooks/useNewGuest";
+import StatCard from "@/features/rooms/component/StatCard";
 
-export default function GuestsPage() {
+export default function GuestDashboard() {
+  // const { onOpen } = useNewGuest();
   const { data: guests = [], isLoading, error, refetch } = useGetGuests();
-  const [rentFilter, setRentFilter] = useState<string>("all");
+
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredGuests = guests.filter((guest) => {
-    if (rentFilter === "all") return true;
-    if (rentFilter === "allowed") return !guest.doNotRent;
-    return guest.doNotRent;
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "allowed" && !guest.doNotRent) ||
+      (statusFilter === "blacklisted" && guest.doNotRent);
+    const matchesSearch = guest.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
   });
 
-  const totalGuests = guests.length;
-  const allowedGuests = guests.filter((guest) => !guest.doNotRent).length;
-  const blacklistedGuests = guests.filter((guest) => guest.doNotRent).length;
+  const stats = {
+    total: guests.length,
+    allowed: guests.filter((guest) => !guest.doNotRent).length,
+    blacklisted: guests.filter((guest) => guest.doNotRent).length,
+  };
 
   if (isLoading) {
     return (
-      <div>
-        <Card className="border-none drop-shadow-sm bg-transparent">
-          <CardContent>
-            <div className="h-[500px] w-full flex items-center justify-center">
-              <Loader2 className="size-6 text-slate-300 animate-spin" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-[500px] items-center justify-center">
+        <RefreshCcw className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div>
-        <Card className="border-none drop-shadow-sm bg-transparent">
-          <CardHeader>
-            <CardTitle className="text-xl text-red-500">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center text-red-500">
-              Error loading guests: {error.message}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="text-destructive">Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-destructive">
+            Failed to load guests: {error.message}
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3  ">
-        <Card className="bg-[#0B0F17]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Guests</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalGuests}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0B0F17]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Allowed to Rent
-            </CardTitle>
-            <UserCheck2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">
-              {allowedGuests}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0B0F17]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Blacklisted</CardTitle>
-            <UserMinus2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-500">
-              {blacklistedGuests}
-            </div>
-          </CardContent>
-        </Card>
+    <div className="h-full space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold tracking-tight">
+            Guest Management
+          </h2>
+          <p className="text-muted-foreground">
+            Manage and monitor guest information
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button size="sm" className="gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+          <Button size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Guest
+          </Button>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <Card className="border-none drop-shadow-sm bg-transparent">
-        <CardHeader className="gap-y-2 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-            <CardTitle className="text-xl line-clamp-1">Guests</CardTitle>
-            <div className="flex flex-1 items-center gap-2">
-              <Input placeholder="Search guests..." className="max-w-[250px]" />
-              <Select value={rentFilter} onValueChange={setRentFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          title="Total Guests"
+          value={stats.total}
+          icon={<Users size={24} />}
+          variant="blue"
+        />
+        <StatCard
+          title="Allowed to Rent"
+          value={stats.allowed}
+          icon={<UserCheck2 size={24} />}
+          variant="green"
+        />
+        <StatCard
+          title="Blacklisted"
+          value={stats.blacklisted}
+          icon={<UserMinus2 size={24} />}
+          variant="red"
+        />
+      </div>
+
+      <Card className="border-0 ">
+        <CardContent className="p-3 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search guests..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9  border-zinc-800 placeholder:text-muted-foreground/60"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]  border-zinc-800">
+                  <SelectValue placeholder="All Guests" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className=" border-zinc-800">
                   <SelectItem value="all">All Guests</SelectItem>
                   <SelectItem value="allowed">Allowed to Rent</SelectItem>
                   <SelectItem value="blacklisted">Blacklisted</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="icon" onClick={() => refetch()}>
+              <Button
+                size="icon"
+                onClick={() => refetch()}
+                className="h-10 w-10 shrink-0"
+              >
                 <RefreshCcw className="h-4 w-4" />
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-            <AddGuestDialog />
+          <div className="rounded-lg  border-zinc-800/50">
+            <DataTable columns={columns} data={filteredGuests} />
           </div>
-        </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={filteredGuests} />
         </CardContent>
       </Card>
     </div>

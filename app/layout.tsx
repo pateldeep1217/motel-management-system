@@ -6,6 +6,7 @@ import "./globals.css";
 import { auth } from "@/auth";
 
 import Providers from "@/features/auth/components/query-provider";
+import SheetProvider from "@/providers/SheetProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,12 +32,19 @@ export default async function RootLayout({
   const session = await auth();
   console.log(session);
   return (
-    <html lang="en" className="dark">
+    <html
+      lang="en"
+      className="dark
+    "
+    >
       <SessionProvider session={session}>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Providers>{children}</Providers>
+          <Providers>
+            <SheetProvider />
+            {children}
+          </Providers>
         </body>
       </SessionProvider>
     </html>
