@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import StatCard from "@/components/StatCard";
 import {
   UserPlus,
@@ -9,7 +10,7 @@ import {
   Minus,
 } from "lucide-react";
 
-const DashboardOverview = () => {
+async function DashboardOverview() {
   const stats = [
     {
       title: "Today's Check-ins",
@@ -52,5 +53,5 @@ const DashboardOverview = () => {
       </div>
     </div>
   );
-};
+}
 export default DashboardOverview;

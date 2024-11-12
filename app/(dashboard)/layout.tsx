@@ -1,25 +1,36 @@
 "use client";
-import React from "react";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusCircle, AlertCircle, Loader2 } from "lucide-react";
+import {
+  PlusCircle,
+  AlertCircle,
+  Loader2,
+  Building2,
+  Menu,
+} from "lucide-react";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { useGetUserMotels } from "@/features/motels/api/use-get-user-motels";
 import { usePathname } from "next/navigation";
+import UserButton from "@/features/auth/components/UserButton";
+import { useSession } from "next-auth/react";
 
-const DashboardLayout = ({ children }) => {
+export default function DashboardLayout({ children }) {
+  const user = useSession();
   const { data, isLoading, error, isError } = useGetUserMotels();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const isCreateMotelPage = pathname === "/create-motel";
 
+  const isCreateMotelPage = pathname === "/create-motel";
   const currentMotel = data?.[0]?.motels?.name;
 
   const renderHeader = () => {
     if (isLoading) {
       return (
-        <div className="flex items-center space-x-2 text-2xl font-bold text-gray-900 dark:text-white">
-          <Loader2 className="w-6 h-6 animate-spin" />
+        <div className="flex items-center space-x-2 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
           <span>Loading motels...</span>
         </div>
       );
@@ -40,19 +51,29 @@ const DashboardLayout = ({ children }) => {
 
     if (currentMotel) {
       return (
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {currentMotel.charAt(0).toUpperCase() + currentMotel.slice(1)}
-        </h1>
+        <div className="flex items-center gap-2 w-full">
+          <div className=" flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
+            <h1 className="text-xl font-semibold">
+              {currentMotel.charAt(0).toUpperCase() + currentMotel.slice(1)}
+            </h1>
+          </div>
+
+          <div className="ml-auto lg:hidden">
+            <UserButton
+              user={user.data?.user || { name: null, email: null, image: null }}
+              avatarOnly={true}
+            />
+          </div>
+        </div>
       );
     }
 
     if (!isCreateMotelPage) {
       return (
         <div className="text-center py-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            No Motel Found
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
+          <h1 className="text-2xl font-bold mb-4">No Motel Found</h1>
+          <p className="text-muted-foreground mb-6">
             Get started by creating your first motel
           </p>
           <Button asChild>
@@ -60,7 +81,7 @@ const DashboardLayout = ({ children }) => {
               href="/create-motel"
               className="inline-flex items-center gap-2"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="h-4 w-4" />
               Create Motel
             </Link>
           </Button>
@@ -72,25 +93,39 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
-      <div className="lg:w-64 flex-shrink-0">
-        <Sidebar />
-      </div>
-      <main className="flex-grow p-6 lg:p-10 lg:rounded-lg lg:bg-white lg:shadow-sm lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/5 mt-2 mb-2 mr-2">
-        <header className="mb-6">{renderHeader()}</header>
-        {(currentMotel || isCreateMotelPage) && (
-          <div className="relative">
-            {isLoading && (
-              <div className="absolute inset-0 bg-white/50 dark:bg-zinc-900/50 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    <div className="flex h-screen overflow-hidden bg-background ">
+      <Sidebar
+        mobileOpen={mobileOpen}
+        toggleMobileOpen={() => setMobileOpen(!mobileOpen)}
+      />
+      <div className="flex-1 flex flex-col overflow-y-auto">
+        <div className="flex-1 grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:shadow-sm lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-card dark:lg:ring-white/10 m-2">
+          <header className="flex h-14 items-center max-w-full md:max-w-7xl mx-auto">
+            <div className="container flex items-center gap-4 px-4 max-w-full">
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="lg:hidden p-2 text-white"
+                aria-label="Toggle Sidebar"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+              {renderHeader()}
+            </div>
+          </header>
+          <main className="container mx-auto px-4 py-6 max-w-full md:max-w-7xl">
+            {(currentMotel || isCreateMotelPage) && (
+              <div className="relative">
+                {isLoading && (
+                  <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                )}
+                {children}
               </div>
             )}
-            {children}
-          </div>
-        )}
-      </main>
+          </main>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default DashboardLayout;
+}

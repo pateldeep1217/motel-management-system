@@ -1,79 +1,131 @@
 "use client";
-import React, { Fragment, useState } from "react";
-import Logo from "../svg/Logo";
-import { motion } from "framer-motion";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import {
-  Dialog,
-  DialogPanel,
-  Transition,
-  TransitionChild,
-} from "@headlessui/react";
-import { MenuIcon, XIcon } from "lucide-react";
-import SidebarContent from "./SidebarContent";
+  LayoutDashboard,
+  Building2,
+  Users,
+  CalendarDays,
+  Settings,
+  Menu,
+  X,
+} from "lucide-react";
+import Logo from "../svg/Logo";
+import UserButton from "@/features/auth/components/UserButton";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 
-function Sidebar() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+const navigation = [
+  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Rooms", href: "/rooms", icon: Building2 },
+  { name: "Guests", href: "/guests", icon: Users },
+  { name: "Bookings", href: "/bookings", icon: CalendarDays },
+];
 
-  return (
-    <>
-      <div className="lg:hidden flex justify-between items-center w-full p-4  ">
-        <button
-          className=""
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open sidebar"
-        >
-          <MenuIcon size={24} className="text-white" />
-        </button>
-      </div>
-
-      {/* DESKTOP SIDEBAR */}
-      <div className="hidden lg:flex lg:w-64  h-full fixed  ">
-        <SidebarContent />
-      </div>
-      {/* MOBILE SIDEBAR */}
-      <Transition show={sidebarOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-50 lg:hidden"
-          onClose={setSidebarOpen}
-        >
-          <TransitionChild
-            as={Fragment}
-            enter="transition ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-opacity-50 bg-black" />
-          </TransitionChild>
-
-          <div className="fixed inset-0 flex">
-            <TransitionChild
-              as={Fragment}
-              enter="transition ease-out duration-300 transform"
-              enterFrom="-translate-x-full"
-              enterTo="translate-x-0"
-              leave="transition ease-in duration-200 transform"
-              leaveFrom="translate-x-0"
-              leaveTo="-translate-x-full"
-            >
-              <DialogPanel className="relative w-64 text-white h-full shadow-xl bg-background overflow-y-auto">
-                <XIcon
-                  size={20}
-                  className="absolute top-4 right-4 cursor-pointer"
-                  onClick={() => setSidebarOpen(false)}
-                />
-                <SidebarContent />
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </Dialog>
-      </Transition>
-    </>
-  );
+interface SidebarProps {
+  mobileOpen: boolean;
+  toggleMobileOpen: () => void;
 }
 
-export default Sidebar;
+export default function Sidebar({
+  mobileOpen,
+  toggleMobileOpen,
+}: SidebarProps) {
+  const pathname = usePathname();
+
+  // Inside your Sidebar component
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && mobileOpen) {
+        toggleMobileOpen();
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [mobileOpen, toggleMobileOpen]);
+
+  return (
+    <div>
+      {/* Backdrop for mobile view */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-secondary/50 z-40 lg:hidden"
+          onClick={toggleMobileOpen}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 z-40 h-full flex flex-col w-64 transform  transition-transform duration-200 ease-in-out lg:translate-x-0 lg:relative ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        aria-label="Sidebar Navigation"
+      >
+        <div className="flex items-center justify-between h-16  border-zinc-800 px-4">
+          <div className="flex items-center">
+            <Logo className="h-8 w-8 text-white" />
+            <span className="text-white font-semibold text-lg ml-2">
+              StaySync
+            </span>
+          </div>
+          <button
+            onClick={toggleMobileOpen}
+            className="lg:hidden p-2 text-white"
+            aria-label="Close Sidebar"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 flex flex-col py-6 px-4 space-y-1 relative">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative ${
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "text-accent-foreground hover:text-accent-foreground hover:bg-accent/50"
+                }`}
+                onClick={toggleMobileOpen}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className="absolute left-0 top-0 h-full w-1 bg-primary"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{ left: 0 }}
+                  />
+                )}
+                <item.icon className="h-5 w-5" />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User and Settings */}
+        <div className="mt-auto flex flex-col items-center p-4  border-zinc-800">
+          <UserButton
+            user={
+              useSession().data?.user || {
+                name: null,
+                email: null,
+                image: null,
+              }
+            }
+          />
+        </div>
+      </aside>
+    </div>
+  );
+}

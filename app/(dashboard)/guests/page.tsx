@@ -39,9 +39,10 @@ export default function GuestDashboard() {
       statusFilter === "all" ||
       (statusFilter === "allowed" && !guest.doNotRent) ||
       (statusFilter === "blacklisted" && guest.doNotRent);
-    const matchesSearch = guest.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      guest.phone?.includes(searchQuery) ||
+      guest.idProof.toUpperCase().includes(searchQuery.toUpperCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -75,7 +76,7 @@ export default function GuestDashboard() {
   }
 
   return (
-    <div className="h-full space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="space-y-8  max-w-7xl mx-auto">
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">

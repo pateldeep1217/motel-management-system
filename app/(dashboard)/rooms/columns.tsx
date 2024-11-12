@@ -39,12 +39,16 @@ export const columns: ColumnDef<ResponseType>[] = [
   },
   {
     accessorKey: "number",
-    header: "Room Number",
-    cell: ({ row }) => <div>{row.getValue("number")}</div>,
+    header: () => <div className="text-center">Room Number</div>,
+    cell: ({ row }) => (
+      <div className="text-center">{row.getValue("number")}</div>
+    ),
+    sortDescFirst: true,
   },
   {
     accessorKey: "type",
     header: "Type",
+    sortDescFirst: true,
   },
   {
     accessorKey: "price",
@@ -57,6 +61,7 @@ export const columns: ColumnDef<ResponseType>[] = [
       }).format(price);
       return <div>{formatted}</div>;
     },
+    sortDescFirst: true,
   },
   {
     accessorKey: "status",
@@ -76,6 +81,7 @@ export const columns: ColumnDef<ResponseType>[] = [
         </Badge>
       );
     },
+    sortDescFirst: true,
   },
   {
     id: "actions",

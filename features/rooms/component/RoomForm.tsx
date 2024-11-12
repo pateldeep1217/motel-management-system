@@ -20,40 +20,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { roomInsertSchema } from "@/db/schema";
+import { useGetRoomStatuses } from "../api/use-get-room-statuses";
+import { Trash } from "lucide-react";
 
-const roomSchema = z.object({
-  number: z.string().min(1, "Room number is required"),
-  price: z.string().min(1, "Price is required"),
-  statusId: z.string().min(1, "Status is required"),
-  type: z.string().min(1, "Room type is required"),
-  capacity: z.number().int().min(1, "Capacity must be at least 1"),
+const formSchema = roomInsertSchema.pick({
+  number: true,
+  statusId: true,
+  price: true,
+  capacity: true,
+  type: true,
 });
 
-type RoomFormValues = z.infer<typeof roomSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 interface RoomFormProps {
-  onSubmit: (data: RoomFormValues) => void;
-  isLoading: boolean;
+  id?: string;
+  defaultValues?: FormValues;
+  onSubmit: (values: FormValues) => void;
+  onDelete?: () => void;
+  disabled?: boolean;
 }
 
-export function RoomForm({ onSubmit, isLoading }: RoomFormProps) {
-  const form = useForm<RoomFormValues>({
-    resolver: zodResolver(roomSchema),
-    defaultValues: {
-      number: "",
-      price: "",
-      statusId: "",
-      type: "",
-      capacity: 1,
-    },
+export function RoomForm({
+  id,
+  defaultValues,
+  onSubmit,
+  onDelete,
+  disabled,
+}: RoomFormProps) {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultValues,
   });
 
+  const { data: statuses, isLoading, error } = useGetRoomStatuses();
+
+  const handleSubmit = (values: FormValues) => {
+    onSubmit(values);
+  };
+
+  const handleDelete = () => {
+    onDelete?.();
+  };
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6   px-1 "
-      >
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 ">
         <FormField
           control={form.control}
           name="number"
@@ -74,7 +86,20 @@ export function RoomForm({ onSubmit, isLoading }: RoomFormProps) {
             <FormItem>
               <FormLabel>Price</FormLabel>
               <FormControl>
-                <Input placeholder="100" {...field} />
+                <Input
+                  placeholder="0.00"
+                  {...field}
+                  onChange={(e) => {
+                    // Remove non-numeric characters
+                    const value = e.target.value.replace(/[^\d]/g, "");
+                    // Convert to decimal format (4323 -> 43.23)
+                    const decimal = (parseInt(value) / 100).toFixed(2);
+                    // Update the form
+                    field.onChange(decimal);
+                  }}
+                  // Format display value
+                  value={field.value ? Number(field.value).toFixed(2) : ""}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,17 +111,31 @@ export function RoomForm({ onSubmit, isLoading }: RoomFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value ?? undefined}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a status" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="cleaning">Cleaning</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  {isLoading ? (
+                    <SelectItem value="" disabled>
+                      Loading...
+                    </SelectItem>
+                  ) : error ? (
+                    <SelectItem value="" disabled>
+                      Error loading statuses
+                    </SelectItem>
+                  ) : (
+                    statuses?.map((status) => (
+                      <SelectItem key={status.id} value={status.id}>
+                        {status.status}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -143,9 +182,21 @@ export function RoomForm({ onSubmit, isLoading }: RoomFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Creating..." : "Create Room"}
+        <Button className="w-full" disabled={disabled}>
+          {id ? "Save changes" : "Create account"}
         </Button>
+        {!!id && (
+          <Button
+            type="button"
+            disabled={disabled}
+            onClick={handleDelete}
+            className="w-full"
+            variant="outline"
+          >
+            <Trash className="size-4 mr-2" />
+            Delete account
+          </Button>
+        )}
       </form>
     </Form>
   );

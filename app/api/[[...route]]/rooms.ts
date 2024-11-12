@@ -91,18 +91,12 @@ const app = new Hono()
       .from(userMotels)
       .where(eq(userMotels.userId, auth.token.id as string));
 
-    const [statusRecord] = await db
-      .select()
-      .from(roomStatuses)
-      .where(eq(roomStatuses.status, values.statusId as string));
-    console.log(userMotel);
-
     const data = await db
       .insert(rooms)
       .values({
         number: values.number,
         price: values.price,
-        statusId: statusRecord.id,
+        statusId: values.statusId,
         type: values.type,
         capacity: values.capacity,
         motelId: userMotel.motelId,

@@ -2,20 +2,26 @@ import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { cva, type VariantProps } from "class-variance-authority";
 
-const statCardVariants = cva("relative overflow-hidden p-4 transition-all", {
+const statCardVariants = cva("relative overflow-hidden p-6 transition-all", {
   variants: {
-    variant: {
-      default: "border-primary/20 bg-primary/10 text-primary",
-      secondary: "border-secondary/20 bg-secondary/10 text-secondary",
-      blue: "border-blue-500/20 bg-blue-500/10 text-blue-500",
-      purple: "border-purple-500/20 bg-purple-500/10 text-purple-500",
-      green: "border-green-500/20 bg-green-500/10 text-green-500",
-      amber: "border-amber-500/20 bg-amber-500/10 text-amber-500",
-      red: "border-red-500/20 bg-red-500/10 text-red-500",
+    intent: {
+      primary: "bg-primary/10 border-primary/20 text-primary",
+      secondary:
+        "bg-secondary/10 border-secondary/20 text-secondary-foreground",
+      info: "bg-blue-500/10 border-blue-500/20 text-blue-500",
+      success: "bg-green-500/10 border-green-500/20 text-green-500",
+      warning: "bg-amber-500/10 border-amber-500/20 text-amber-500",
+      danger: "bg-red-500/10 border-red-500/20 text-red-500",
+    },
+    size: {
+      sm: "p-4",
+      md: "p-6",
+      lg: "p-8",
     },
   },
   defaultVariants: {
-    variant: "default",
+    intent: "primary",
+    size: "md",
   },
 });
 
@@ -36,12 +42,13 @@ export function StatCard({
   value,
   icon,
   trend,
-  variant,
+  intent,
+  size,
   className,
   ...props
 }: StatCardProps) {
   return (
-    <Card className={statCardVariants({ variant, className })} {...props}>
+    <Card className={statCardVariants({ intent, size, className })} {...props}>
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
@@ -59,9 +66,7 @@ export function StatCard({
         </div>
         <div className="rounded-full p-2 bg-background/10">{icon}</div>
       </div>
-      <div
-        className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-background/50 to-background/10`}
-      />
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-background/50 to-background/10" />
     </Card>
   );
 }

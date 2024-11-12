@@ -1,82 +1,88 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession, signOut, getSession } from "next-auth/react";
+import { useCallback } from "react";
+import { signOut } from "next-auth/react";
+import { LogOut, Settings } from "lucide-react";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Loader } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 
-const UserButton = () => {
-  const { data: session, status } = useSession();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [loadingSession, setLoadingSession] = useState(true);
+interface UserButtonProps {
+  user: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  avatarOnly?: boolean;
+}
 
-  useEffect(() => {
-    const loadSession = async () => {
-      await getSession();
-      setLoadingSession(false);
-    };
-    loadSession();
-  }, []);
+const UserButton = ({ user, avatarOnly = false }: UserButtonProps) => {
+  const { name, email, image } = user;
 
-  const getInitials = (name) => {
+  const getInitials = useCallback((name: string) => {
     return name
-      .split(" ")
+      ?.split(" ")
       .map((part) => part[0])
       .join("")
       .toUpperCase()
       .slice(0, 2);
-  };
+  }, []);
 
   const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      setIsLoggingOut(false);
-    }
+    await signOut();
   };
-
-  if (status === "loading" || loadingSession) {
-    return <Loader className="animate-spin" />;
-  }
-
-  const name = session?.user?.name;
-  const image = session?.user?.image;
-  const email = session?.user?.email;
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="outline-none">
-        <div className="flex items-center gap-2 ">
-          <span className="flex min-w-0 items-center gap-3">
-            <Avatar>
-              <AvatarImage src={image || ""} alt={name || ""} />
-              <AvatarFallback>{name ? getInitials(name) : "?"}</AvatarFallback>
-            </Avatar>
-            <span className="min-w-0">
-              <span className="block truncate text-sm/5 font-medium text-zinc-950 dark:text-white">
+      <DropdownMenuTrigger asChild>
+        <div className="flex items-center gap-3 cursor-pointer">
+          <div className="flex-shrink-0">
+            {image ? (
+              <div className="h-8 w-8 rounded-lg overflow-hidden">
+                <img
+                  src={image}
+                  alt="User Avatar"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="h-8 w-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                <span className="text-sm font-medium text-zinc-100">
+                  {name ? getInitials(name) : "?"}
+                </span>
+              </div>
+            )}
+          </div>
+          {!avatarOnly && (
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {name}
               </span>
-              <span className="block truncate text-xs/5 font-normal text-zinc-500 dark:text-zinc-400">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {email}
               </span>
-            </span>
-          </span>
+            </div>
+          )}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem className="cursor-pointer">
+          <Settings className="mr-2 h-4 w-4" />
+          Settings
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={handleLogout}
+          className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 cursor-pointer"
+        >
           <LogOut className="mr-2 h-4 w-4" />
-          {isLoggingOut ? "Logging out..." : "Log out"}
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

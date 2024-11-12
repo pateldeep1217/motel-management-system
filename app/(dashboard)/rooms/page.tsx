@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { utils, writeFile } from "xlsx"; // Import SheetJS functions
 import {
   Search,
   Download,
@@ -11,7 +12,6 @@ import {
   DoorClosed,
   Check,
 } from "lucide-react";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,13 @@ export default function RoomDashboard() {
     cleaning: rooms.filter((room) => room.status === "cleaning").length,
   };
 
+  const exportToExcel = () => {
+    const ws = utils.json_to_sheet(filteredRooms);
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, "Rooms");
+    writeFile(wb, "rooms.xlsx");
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-[500px] items-center justify-center">
@@ -82,7 +89,7 @@ export default function RoomDashboard() {
   }
 
   return (
-    <div className="h-full space-y-8 p-6">
+    <div className="h-full space-y-8  max-w-7xl mx-auto">
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Room Management</h2>
@@ -91,10 +98,11 @@ export default function RoomDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm">
+          <Button size="sm" onClick={exportToExcel}>
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
+
           <Button onClick={onOpen} size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Add Room
@@ -104,41 +112,39 @@ export default function RoomDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
+          intent="primary"
           title="Total Rooms"
-          value={stats.total}
-          icon={<BedDouble size={24} />}
-          variant="blue"
+          value={30}
+          icon={<BedDouble className="h-6 w-6" />}
         />
         <StatCard
+          intent="success"
           title="Available Rooms"
-          value={stats.available}
-          icon={<DoorClosed size={24} />}
-          variant="green"
+          value={18}
+          icon={<BedDouble className="h-6 w-6" />}
         />
         <StatCard
+          intent="warning"
           title="Occupied Rooms"
-          value={stats.occupied}
-          icon={<Check size={24} />}
-          variant="red"
+          value={12}
+          icon={<BedDouble className="h-6 w-6" />}
         />
         <StatCard
+          intent="info"
           title="Cleaning"
-          value={stats.cleaning}
-          icon={<Brush size={24} />}
-          variant="amber"
+          value={3}
+          icon={<BedDouble className="h-6 w-6" />}
         />
       </div>
 
       <Card className="border-0">
         <CardContent className="p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground  z-10" />
+            <div className=" flex-1">
               <Input
                 placeholder="Search rooms..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 "
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -167,9 +173,10 @@ export default function RoomDashboard() {
                 </SelectContent>
               </Select>
               <Button
+                variant="ghost"
                 size="icon"
                 onClick={() => refetch()}
-                className="h-10 w-10 shrink-0"
+                className="h-10 w-10 shrink-0 bg-background  border border-input "
               >
                 <RefreshCcw className="h-4 w-4" />
               </Button>
