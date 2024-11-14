@@ -1,20 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { utils, writeFile } from "xlsx"; // Import SheetJS functions
 import {
-  Search,
   Download,
   RefreshCcw,
   Plus,
   BedDouble,
-  Brush,
-  DoorClosed,
-  Check,
+  Building2,
+  DoorOpen,
+  Paintbrush,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+import { DataTable } from "@/components/DataTable";
+import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
+import { useGetRoomStatuses } from "@/features/rooms/api/use-get-room-statuses";
+import { columns } from "./columns";
+import { useNewRoom } from "@/features/rooms/hooks/useNewRoom";
+import StatCard from "@/features/rooms/component/StatCard";
 import {
   Select,
   SelectContent,
@@ -22,12 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DataTable } from "@/components/DataTable";
-import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
-import { useGetRoomStatuses } from "@/features/rooms/api/use-get-room-statuses";
-import { columns } from "./columns";
-import { useNewRoom } from "@/features/rooms/hooks/useNewRoom";
-import StatCard from "@/features/rooms/component/StatCard";
 
 export default function RoomDashboard() {
   const { onOpen } = useNewRoom();
@@ -112,28 +112,24 @@ export default function RoomDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          intent="primary"
           title="Total Rooms"
-          value={30}
-          icon={<BedDouble className="h-6 w-6" />}
+          value={stats.total}
+          icon={<Building2 className="h-6 w-6 text-muted-foreground" />}
         />
         <StatCard
-          intent="success"
           title="Available Rooms"
-          value={18}
-          icon={<BedDouble className="h-6 w-6" />}
+          value={stats.available}
+          icon={<DoorOpen className="h-6 w-6 text-emerald-500" />}
         />
         <StatCard
-          intent="warning"
           title="Occupied Rooms"
-          value={12}
-          icon={<BedDouble className="h-6 w-6" />}
+          value={stats.occupied}
+          icon={<BedDouble className="h-6 w-6 text-rose-500" />}
         />
         <StatCard
-          intent="info"
           title="Cleaning"
-          value={3}
-          icon={<BedDouble className="h-6 w-6" />}
+          value={stats.cleaning}
+          icon={<Paintbrush className="h-6 w-6 text-amber-500" />}
         />
       </div>
 

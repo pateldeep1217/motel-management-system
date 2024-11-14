@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -51,10 +52,11 @@ export function RoomForm({
 }: RoomFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues,
   });
 
   const { data: statuses, isLoading, error } = useGetRoomStatuses();
+  console.log("Fetched statuses:", statuses); // Log fetched statuses
 
   const handleSubmit = (values: FormValues) => {
     onSubmit(values);
@@ -63,9 +65,10 @@ export function RoomForm({
   const handleDelete = () => {
     onDelete?.();
   };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 ">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="number"
@@ -90,14 +93,10 @@ export function RoomForm({
                   placeholder="0.00"
                   {...field}
                   onChange={(e) => {
-                    // Remove non-numeric characters
                     const value = e.target.value.replace(/[^\d]/g, "");
-                    // Convert to decimal format (4323 -> 43.23)
                     const decimal = (parseInt(value) / 100).toFixed(2);
-                    // Update the form
                     field.onChange(decimal);
                   }}
-                  // Format display value
                   value={field.value ? Number(field.value).toFixed(2) : ""}
                 />
               </FormControl>
@@ -108,61 +107,70 @@ export function RoomForm({
         <FormField
           control={form.control}
           name="statusId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value ?? undefined}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a status" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {isLoading ? (
-                    <SelectItem value="" disabled>
-                      Loading...
-                    </SelectItem>
-                  ) : error ? (
-                    <SelectItem value="" disabled>
-                      Error loading statuses
-                    </SelectItem>
-                  ) : (
-                    statuses?.map((status) => (
-                      <SelectItem key={status.id} value={status.id}>
-                        {status.status}
+          render={({ field }) => {
+            console.log("status: ", field);
+            return (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {isLoading ? (
+                      <SelectItem value="" disabled>
+                        Loading...
                       </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+                    ) : error ? (
+                      <SelectItem value="" disabled>
+                        Error loading statuses
+                      </SelectItem>
+                    ) : (
+                      statuses?.map((status) => (
+                        <SelectItem key={status.id} value={status.id}>
+                          {status.status}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <FormField
           control={form.control}
           name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Room Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a room type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="single">Single</SelectItem>
-                  <SelectItem value="double">Double</SelectItem>
-                  <SelectItem value="suite">Suite</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            console.log("price: ", field);
+            return (
+              <FormItem>
+                <FormLabel>Room Type</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a room type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Single">Single</SelectItem>
+                    <SelectItem value="Double">Double</SelectItem>
+                    <SelectItem value="Suite">Suite</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         <FormField
           control={form.control}
@@ -183,7 +191,7 @@ export function RoomForm({
           )}
         />
         <Button className="w-full" disabled={disabled}>
-          {id ? "Save changes" : "Create account"}
+          {id ? "Save changes" : "Create room"}
         </Button>
         {!!id && (
           <Button
@@ -194,7 +202,7 @@ export function RoomForm({
             variant="outline"
           >
             <Trash className="size-4 mr-2" />
-            Delete account
+            Delete room
           </Button>
         )}
       </form>

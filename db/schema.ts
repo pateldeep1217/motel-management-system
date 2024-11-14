@@ -10,8 +10,8 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 
 import { relations } from "drizzle-orm";
-import { z } from "zod";
 
+// User Roles Table
 export const userRoles = pgTable("user_roles", {
   id: text("id")
     .primaryKey()
@@ -21,6 +21,7 @@ export const userRoles = pgTable("user_roles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Room Statuses Table
 export const roomStatuses = pgTable("room_statuses", {
   id: text("id")
     .primaryKey()
@@ -30,6 +31,7 @@ export const roomStatuses = pgTable("room_statuses", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Booking Statuses Table
 export const bookingStatuses = pgTable("booking_statuses", {
   id: text("id")
     .primaryKey()
@@ -39,6 +41,7 @@ export const bookingStatuses = pgTable("booking_statuses", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Users Table
 export const users = pgTable("users", {
   id: text("id")
     .primaryKey()
@@ -50,6 +53,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Sessions Table (for managing user sessions)
 export const sessions = pgTable("sessions", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
@@ -131,8 +135,9 @@ export const bookings = pgTable("bookings", {
   guestId: text("guest_id")
     .notNull()
     .references(() => guests.id, { onDelete: "cascade" }),
-  checkIn: timestamp("check_in", { mode: "date" }).notNull(),
-  checkOut: timestamp("check_out", { mode: "date" }).notNull(),
+  guestName: text("guest_name").notNull(), // Included in the model
+  checkInDate: timestamp("check_in", { mode: "date" }).notNull(),
+  checkOutDate: timestamp("check_out", { mode: "date" }).notNull(),
   bookingStatusId: text("booking_status_id")
     .notNull()
     .references(() => bookingStatuses.id, { onDelete: "cascade" }),
@@ -163,6 +168,7 @@ export const userMotels = pgTable(
   })
 );
 
+// Relations Setup
 export const usersRelations = relations(users, ({ many }) => ({
   motels: many(userMotels),
 }));
@@ -208,6 +214,8 @@ export const bookingStatusesRelations = relations(
     bookings: many(bookings),
   })
 );
+
+// Insert Schemas for Validation
 export const userInsertSchema = createInsertSchema(users);
 export const motelInsertSchema = createInsertSchema(motels);
 export const roomInsertSchema = createInsertSchema(rooms);

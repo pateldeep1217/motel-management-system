@@ -1,5 +1,6 @@
 "use client";
 
+import { EditRoomSheet } from "@/features/rooms/component/EditRoomSheet";
 import NewRoomSheet from "@/features/rooms/component/NewRoomSheet";
 import React, { useEffect, useState } from "react";
 
@@ -13,6 +14,7 @@ function SheetProvider() {
   return (
     <>
       <NewRoomSheet />
+      <EditRoomSheet />
     </>
   );
 }

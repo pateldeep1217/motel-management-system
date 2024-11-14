@@ -8,6 +8,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
+        // Room statuses
         available:
           "bg-green-500/20 text-green-700 border-green-500/25 dark:bg-green-500/10 dark:text-green-400",
         occupied:
@@ -16,6 +17,16 @@ const badgeVariants = cva(
           "bg-amber-400/20 text-amber-700 border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-400",
         cleaning:
           "bg-amber-400/20 text-amber-700 border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-400",
+
+        // Booking statuses
+        confirmed:
+          "bg-blue-500/20 text-blue-700 border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-400",
+        "checked-in":
+          "bg-green-500/20 text-green-700 border-green-500/25 dark:bg-green-500/10 dark:text-green-400",
+        "checked-out":
+          "bg-gray-500/20 text-gray-700 border-gray-500/25 dark:bg-gray-500/10 dark:text-gray-400",
+        cancelled:
+          "bg-red-500/20 text-red-700 border-red-500/25 dark:bg-red-500/10 dark:text-red-400",
       },
     },
     defaultVariants: {

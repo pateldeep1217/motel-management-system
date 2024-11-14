@@ -1,17 +1,16 @@
 import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils"; // Assuming a utility function to handle classnames
 
+// Define distinct styles for each stat category based on your dashboard's theme colors
 const statCardVariants = cva("relative overflow-hidden p-6 transition-all", {
   variants: {
     intent: {
-      primary: "bg-primary/10 border-primary/20 text-primary",
-      secondary:
-        "bg-secondary/10 border-secondary/20 text-secondary-foreground",
-      info: "bg-blue-500/10 border-blue-500/20 text-blue-500",
-      success: "bg-green-500/10 border-green-500/20 text-green-500",
-      warning: "bg-amber-500/10 border-amber-500/20 text-amber-500",
-      danger: "bg-red-500/10 border-red-500/20 text-red-500",
+      total: "bg-muted/10 border-muted text-muted-foreground",
+      available: "bg-emerald-500/10 border-emerald-500 text-emerald-500",
+      occupied: "bg-rose-500/10 border-rose-500 text-rose-500",
+      cleaning: "bg-amber-500/10 border-amber-500 text-amber-500",
     },
     size: {
       sm: "p-4",
@@ -20,7 +19,7 @@ const statCardVariants = cva("relative overflow-hidden p-6 transition-all", {
     },
   },
   defaultVariants: {
-    intent: "primary",
+    intent: "total",
     size: "md",
   },
 });
@@ -48,7 +47,10 @@ export function StatCard({
   ...props
 }: StatCardProps) {
   return (
-    <Card className={statCardVariants({ intent, size, className })} {...props}>
+    <Card
+      className={cn(statCardVariants({ intent, size }), className)}
+      {...props}
+    >
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>

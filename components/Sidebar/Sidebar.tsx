@@ -8,8 +8,6 @@ import {
   Building2,
   Users,
   CalendarDays,
-  Settings,
-  Menu,
   X,
 } from "lucide-react";
 import Logo from "../svg/Logo";
@@ -34,8 +32,8 @@ export default function Sidebar({
   toggleMobileOpen,
 }: SidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
-  // Inside your Sidebar component
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024 && mobileOpen) {
@@ -48,76 +46,66 @@ export default function Sidebar({
   }, [mobileOpen, toggleMobileOpen]);
 
   return (
-    <div>
-      {/* Backdrop for mobile view */}
+    <>
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-secondary/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={toggleMobileOpen}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-full flex flex-col w-64 transform  transition-transform duration-200 ease-in-out lg:translate-x-0 lg:relative ${
+        className={`fixed top-0 left-0 z-50 h-full flex flex-col w-64 bg-[#111111] transform transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Sidebar Navigation"
       >
-        <div className="flex items-center justify-between h-16  border-zinc-800 px-4">
-          <div className="flex items-center">
-            <Logo className="h-8 w-8 text-white" />
-            <span className="text-white font-semibold text-lg ml-2">
-              StaySync
-            </span>
-          </div>
-          <button
-            onClick={toggleMobileOpen}
-            className="lg:hidden p-2 text-white"
-            aria-label="Close Sidebar"
-          >
-            <X className="h-6 w-6" />
-          </button>
+        <div className="flex items-center h-16 px-4">
+          <Logo className="h-8 w-8" />
+          <span className="font-semibold text-lg ml-2 text-white">
+            StaySync
+          </span>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 flex flex-col py-6 px-4 space-y-1 relative">
+        <nav className="flex-1 flex flex-col py-6 px-4 space-y-1">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative ${
+                className={`relative flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                   isActive
-                    ? "bg-accent text-accent-foreground"
-                    : "text-accent-foreground hover:text-accent-foreground hover:bg-accent/50"
+                    ? "text-white bg-white/10"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
-                onClick={toggleMobileOpen}
+                onClick={() => {
+                  if (window.innerWidth < 1024) {
+                    toggleMobileOpen();
+                  }
+                }}
               >
+                <item.icon className="h-5 w-5" />
+                <span>{item.name}</span>
                 {isActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className="absolute left-0 top-0 h-full w-1 bg-primary"
+                    className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-full"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    style={{ left: 0 }}
+                    transition={{ duration: 0.2 }}
                   />
                 )}
-                <item.icon className="h-5 w-5" />
-                <span>{item.name}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* User and Settings */}
-        <div className="mt-auto flex flex-col items-center p-4  border-zinc-800">
+        <div className="mt-auto flex flex-col items-center p-4">
           <UserButton
             user={
-              useSession().data?.user || {
+              session?.user || {
                 name: null,
                 email: null,
                 image: null,
@@ -126,6 +114,6 @@ export default function Sidebar({
           />
         </div>
       </aside>
-    </div>
+    </>
   );
 }

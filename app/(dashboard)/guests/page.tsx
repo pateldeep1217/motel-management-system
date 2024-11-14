@@ -103,19 +103,16 @@ export default function GuestDashboard() {
           title="Total Guests"
           value={stats.total}
           icon={<Users size={24} />}
-          variant="blue"
         />
         <StatCard
           title="Allowed to Rent"
           value={stats.allowed}
           icon={<UserCheck2 size={24} />}
-          variant="green"
         />
         <StatCard
           title="Blacklisted"
           value={stats.blacklisted}
           icon={<UserMinus2 size={24} />}
-          variant="red"
         />
       </div>
 

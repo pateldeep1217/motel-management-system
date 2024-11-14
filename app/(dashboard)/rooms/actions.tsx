@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useConfirm } from "@/hooks/use-confirm";
 import { useDeleteRoom } from "@/features/rooms/api/use-delete-room";
+import { useOpenRoom } from "@/features/rooms/hooks/useOpenRoom";
 
 type ActionsProps = {
   id: string;
@@ -21,6 +22,7 @@ export const Actions = ({ id }: ActionsProps) => {
     "You are about to delete this item."
   );
   const deleteMutation = useDeleteRoom(id);
+  const { onOpen } = useOpenRoom();
 
   const handleDelete = async () => {
     const ok = await confirm();
@@ -39,11 +41,17 @@ export const Actions = ({ id }: ActionsProps) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => console.log("Edit", id)}>
+          <DropdownMenuItem
+            disabled={deleteMutation.isPending}
+            onClick={() => onOpen(id)}
+          >
             <Edit className="size-4 mr-2" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete}>
+          <DropdownMenuItem
+            disabled={deleteMutation.isPending}
+            onClick={handleDelete}
+          >
             <Trash className="size-4 mr-2" />
             Delete
           </DropdownMenuItem>

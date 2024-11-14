@@ -4,6 +4,7 @@ import { AuthConfig, initAuthConfig } from "@hono/auth-js";
 import motels from "./motels";
 import rooms from "./rooms";
 import guests from "./guests";
+import bookings from "./bookings";
 
 import { auth } from "@/auth";
 
@@ -22,7 +23,8 @@ app.use("*", initAuthConfig(getAuthConfig));
 const routes = app
   .route("/motels", motels)
   .route("/rooms", rooms)
-  .route("/guests", guests);
+  .route("/guests", guests)
+  .route("/bookings", bookings);
 
 export const GET = handle(app);
 export const POST = handle(app);

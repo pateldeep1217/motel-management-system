@@ -2,14 +2,17 @@
 import { client } from "@/lib/hono";
 import { useQuery } from "@tanstack/react-query";
 
-export const useGetRoomStatuses = () => {
+export const useGetRoom = (id?: string) => {
   return useQuery({
-    queryKey: ["roomStatuses"],
+    enabled: !!id,
+    queryKey: ["room", { id }],
     queryFn: async () => {
-      const response = await client.api.rooms.statuses.$get();
-      console.log(response.status, response.statusText);
+      const response = await client.api.rooms[":id"].$get({
+        param: { id },
+      });
+
       if (!response.ok) {
-        throw new Error("Failed to fetch rooms");
+        throw new Error("Failed to fetch room");
       }
 
       const { data } = await response.json();

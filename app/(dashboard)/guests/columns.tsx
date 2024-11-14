@@ -59,12 +59,15 @@ export const columns: ColumnDef<ResponseType>[] = [
   {
     accessorKey: "doNotRent",
     header: "Do Not Rent",
-    cell: ({ row }) =>
-      row.original.doNotRent ? (
-        <XCircle className="text-red-500" size={18} />
-      ) : (
-        <CheckCircle className="text-green-500" size={18} />
-      ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        {row.original.doNotRent ? (
+          <XCircle className="text-red-500" size={18} />
+        ) : (
+          <CheckCircle className="text-green-500" size={18} />
+        )}
+      </div>
+    ),
   },
   {
     accessorKey: "createdAt",
