@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/DataTable";
 import { useGetBookings } from "@/features/bookings/api/use-get-bookings";
-import { useGetBookingStatuses } from "@/features/bookings/api/use-get-booking-statuses";
 import { columns } from "./columns";
 import { useNewBooking } from "@/features/bookings/hooks/useNewBooking";
 import StatCard from "@/components/StatCard";
@@ -27,12 +26,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
+import { useGetBookingStatuses } from "@/features/bookings/api/use-get-booking-statuses";
 
 export default function BookingDashboard() {
   const { onOpen } = useNewBooking();
   const { data: bookings = [], isLoading, error, refetch } = useGetBookings();
   const { data: bookingStatuses = [] } = useGetBookingStatuses();
+
+  console.log(bookings);
+  console.log(bookingStatuses);
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<
@@ -42,9 +45,12 @@ export default function BookingDashboard() {
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
+      console.log("Booking Status:", booking.status);
+      console.log("Booking Status ID:", booking.statusId);
+      console.log("Status Filter:", statusFilter);
+
       const matchesStatus =
-        statusFilter === "all" ||
-        booking.bookingStatusId.toLowerCase() === statusFilter.toLowerCase();
+        statusFilter === "all" || booking.statusId === statusFilter; // Use statusId for comparison
       const matchesDateRange =
         !dateRange ||
         (new Date(booking.checkInDate) >= dateRange.from &&
@@ -52,6 +58,11 @@ export default function BookingDashboard() {
       const matchesSearch =
         booking.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         booking.id.toLowerCase().includes(searchQuery.toLowerCase());
+
+      console.log("Matches Status:", matchesStatus);
+      console.log("Matches Date Range:", matchesDateRange);
+      console.log("Matches Search:", matchesSearch);
+
       return matchesStatus && matchesDateRange && matchesSearch;
     });
   }, [bookings, statusFilter, dateRange, searchQuery]);
@@ -128,25 +139,21 @@ export default function BookingDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Bookings"
-          value={stats.total}
-          icon={<Calendar className="h-6 w-6 text-muted-foreground" />}
-        />
+        <StatCard title="Total Bookings" value={stats.total} icon={Calendar} />
         <StatCard
           title="Upcoming Bookings"
           value={stats.upcoming}
-          icon={<UserCheck className="h-6 w-6 text-emerald-500" />}
+          icon={UserCheck}
         />
         <StatCard
           title="Active Bookings"
           value={stats.active}
-          icon={<DoorClosed className="h-6 w-6 text-amber-500" />}
+          icon={DoorClosed}
         />
         <StatCard
           title="Completed Bookings"
           value={stats.completed}
-          icon={<CreditCard className="h-6 w-6 text-blue-500" />}
+          icon={CreditCard}
         />
       </div>
 

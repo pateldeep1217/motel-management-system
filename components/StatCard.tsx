@@ -1,43 +1,76 @@
-import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import * as React from "react";
+import { Card } from "@/components/ui/card";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils"; // Assuming a utility function to handle classnames
 
-const StatCard = ({ title, value, icon: Icon, previous }) => {
-  const difference = parseInt(value) - parseInt(previous);
-  const isIncrease = difference > 0;
-  const isDecrease = difference < 0;
+// Define distinct styles for each stat category based on your dashboard's theme colors
+const statCardVariants = cva("relative overflow-hidden p-6 transition-all", {
+  variants: {
+    intent: {
+      dark: "bg-muted/10 border-muted text-muted-foreground",
+    },
+    size: {
+      sm: "p-4",
+      md: "p-6",
+      lg: "p-8",
+    },
+  },
+  defaultVariants: {
+    intent: "dark",
+    size: "md",
+  },
+});
 
+interface StatCardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof statCardVariants> {
+  title: string;
+  value: number | string;
+  icon: React.ElementType;
+  trend?: {
+    value: number;
+    label: string;
+  };
+}
+
+export function StatCard({
+  title,
+  value,
+  icon: Icon,
+  trend,
+  intent,
+  size,
+  className,
+  ...props
+}: StatCardProps) {
   return (
-    <div className="bg-gray-800/50 rounded-xl p-6 border border-slate-800   ">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <p className=" font-medium mb-2">{title}</p>
-          <p className=" mt-3 text-3xl/8 font-semibold sm:text-2xl/8l">
-            {value}
-          </p>
+    <Card
+      className={cn(statCardVariants({ intent, size }), className)}
+      {...props}
+    >
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
+          {trend && (
+            <p
+              className={`text-xs font-medium ${
+                trend.value >= 0 ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {trend.value >= 0 ? "↑" : "↓"} {Math.abs(trend.value)}%{" "}
+              {trend.label}
+            </p>
+          )}
         </div>
-        <Icon className="text-gray-400 w-6 h-6" />
+        <div className="rounded-full p-2 bg-background/10">
+          {" "}
+          <Icon className="text-gray-400 w-6 h-6" />
+        </div>
       </div>
-
-      <div className="flex items-center gap-2 text-sm">
-        {isIncrease ? (
-          <>
-            <ArrowUpRight className="w-4 h-4 text-emerald-500" />
-            <span className="text-emerald-500">+{difference} increase</span>
-          </>
-        ) : isDecrease ? (
-          <>
-            <ArrowDownRight className="w-4 h-4 text-rose-500" />
-            <span className="text-rose-500">{difference} decrease</span>
-          </>
-        ) : (
-          <>
-            <Minus className="w-4 h-4 text-gray-500" />
-            <span className="text-gray-500">No change</span>
-          </>
-        )}
-        <span className="text-gray-500 ml-auto">from {previous} yesterday</span>
-      </div>
-    </div>
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-background/50 to-background/10" />
+    </Card>
   );
-};
+}
 
 export default StatCard;

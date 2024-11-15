@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
+import { RoomStatusCell } from "@/lib/StatusCells";
 
 import { InferResponseType } from "hono";
 import { client } from "@/lib/hono";
@@ -66,21 +66,7 @@ export const columns: ColumnDef<ResponseType>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-
-      return (
-        <Badge
-          variant={
-            status as "available" | "occupied" | "maintenance" | "cleaning"
-          }
-        >
-          {status
-            ? status.charAt(0).toUpperCase() + status.slice(1)
-            : "Unknown"}
-        </Badge>
-      );
-    },
+    cell: RoomStatusCell,
     sortDescFirst: true,
   },
   {

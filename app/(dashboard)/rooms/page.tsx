@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { utils, writeFile } from "xlsx"; // Import SheetJS functions
 import {
   Download,
@@ -20,7 +20,7 @@ import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
 import { useGetRoomStatuses } from "@/features/rooms/api/use-get-room-statuses";
 import { columns } from "./columns";
 import { useNewRoom } from "@/features/rooms/hooks/useNewRoom";
-import StatCard from "@/features/rooms/component/StatCard";
+import StatCard from "@/components/StatCard";
 import {
   Select,
   SelectContent,
@@ -111,26 +111,18 @@ export default function RoomDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Rooms"
-          value={stats.total}
-          icon={<Building2 className="h-6 w-6 text-muted-foreground" />}
-        />
+        <StatCard title="Total Rooms" value={stats.total} icon={Building2} />
         <StatCard
           title="Available Rooms"
           value={stats.available}
-          icon={<DoorOpen className="h-6 w-6 text-emerald-500" />}
+          icon={DoorOpen}
         />
         <StatCard
           title="Occupied Rooms"
           value={stats.occupied}
-          icon={<BedDouble className="h-6 w-6 text-rose-500" />}
+          icon={BedDouble}
         />
-        <StatCard
-          title="Cleaning"
-          value={stats.cleaning}
-          icon={<Paintbrush className="h-6 w-6 text-amber-500" />}
-        />
+        <StatCard title="Cleaning" value={stats.cleaning} icon={Paintbrush} />
       </div>
 
       <Card className="border-0">

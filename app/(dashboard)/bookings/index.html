@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Revenue Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const bookings = [
+          { date: "2023-11-01", roomNumber: "108", cash: 65, credit: 0 },
+          { date: "2023-11-01", roomNumber: "101", cash: 0, credit: 120 },
+          { date: "2023-11-02", roomNumber: "108", cash: 50, credit: 20 },
+          { date: "2023-11-02", roomNumber: "101", cash: 75, credit: 50 },
+          // Add more data as needed
+        ];
+
+        function calculateTotals(bookings) {
+          let dailyCash = 0,
+            dailyCredit = 0,
+            monthlyCash = 0,
+            monthlyCredit = 0,
+            yearlyCash = 0,
+            yearlyCredit = 0;
+          const today = new Date().toISOString().split("T")[0];
+
+          bookings.forEach((booking) => {
+            const bookingDate = booking.date.split("T")[0];
+            if (bookingDate === today) {
+              dailyCash += booking.cash;
+              dailyCredit += booking.credit;
+            }
+            if (bookingDate.startsWith(today.substring(0, 7))) {
+              monthlyCash += booking.cash;
+              monthlyCredit += booking.credit;
+            }
+            if (bookingDate.startsWith(today.substring(0, 4))) {
+              yearlyCash += booking.cash;
+              yearlyCredit += booking.credit;
+            }
+          });
+
+          document.getElementById("daily-cash").textContent = dailyCash;
+          document.getElementById("daily-credit").textContent = dailyCredit;
+          document.getElementById("monthly-cash").textContent = monthlyCash;
+          document.getElementById("monthly-credit").textContent = monthlyCredit;
+          document.getElementById("yearly-cash").textContent = yearlyCash;
+          document.getElementById("yearly-credit").textContent = yearlyCredit;
+        }
+
+        function populateTable(bookings) {
+          const tableBody = document.getElementById("bookings-table-body");
+          tableBody.innerHTML = "";
+          bookings.forEach((booking) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+            <td class="border px-4 py-2">${booking.date}</td>
+            <td class="border px-4 py-2">${booking.roomNumber}</td>
+            <td class="border px-4 py-2">${booking.cash}</td>
+            <td class="border px-4 py-2">${booking.credit}</td>
+          `;
+            tableBody.appendChild(row);
+          });
+        }
+
+        function filterBookings(dateRange) {
+          return bookings.filter((booking) => {
+            const bookingDate = new Date(booking.date);
+            return (
+              (!dateRange.from || bookingDate >= dateRange.from) &&
+              (!dateRange.to || bookingDate <= dateRange.to)
+            );
+          });
+        }
+
+        document
+          .getElementById("filter-button")
+          .addEventListener("click", () => {
+            const fromDate = new Date(
+              document.getElementById("from-date").value
+            );
+            const toDate = new Date(document.getElementById("to-date").value);
+            const filteredBookings = filterBookings({
+              from: fromDate,
+              to: toDate,
+            });
+            calculateTotals(filteredBookings);
+            populateTable(filteredBookings);
+          });
+
+        calculateTotals(bookings);
+        populateTable(bookings);
+      });
+    </script>
+  </head>
+  <body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow">
+      <h1 class="text-2xl font-bold mb-4">Revenue Dashboard</h1>
+      <div class="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
+        <div class="p-4 bg-blue-100 rounded-lg shadow">
+          <h2 class="font-bold">Daily Summary</h2>
+          <p>Cash: $<span id="daily-cash">0</span></p>
+          <p>Credit: $<span id="daily-credit">0</span></p>
+        </div>
+        <div class="p-4 bg-green-100 rounded-lg shadow">
+          <h2 class="font-bold">Monthly Summary</h2>
+          <p>Cash: $<span id="monthly-cash">0</span></p>
+          <p>Credit: $<span id="monthly-credit">0</span></p>
+        </div>
+        <div class="p-4 bg-yellow-100 rounded-lg shadow">
+          <h2 class="font-bold">Yearly Summary</h2>
+          <p>Cash: $<span id="yearly-cash">0</span></p>
+          <p>Credit: $<span id="yearly-credit">0</span></p>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-gray-700">From Date:</label>
+        <input
+          type="date"
+          id="from-date"
+          class="border rounded p-2 w-full mb-2"
+        />
+        <label class="block text-gray-700">To Date:</label>
+        <input
+          type="date"
+          id="to-date"
+          class="border rounded p-2 w-full mb-2"
+        />
+        <button id="filter-button" class="bg-blue-500 text-white rounded p-2">
+          Filter
+        </button>
+      </div>
+
+      <table class="min-w-full bg-white border">
+        <thead>
+          <tr>
+            <th class="py-2 px-4 border">Date</th>
+            <th class="py-2 px-4 border">Room Number</th>
+            <th class="py-2 px-4 border">Cash</th>
+            <th class="py-2 px-4 border">Credit</th>
+          </tr>
+        </thead>
+        <tbody id="bookings-table-body">
+          <!-- Table rows will be populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

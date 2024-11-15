@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
+import { BookingStatusCell } from "@/lib/StatusCells";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InferResponseType } from "hono";
 import { client } from "@/lib/hono";
@@ -75,22 +75,9 @@ export const columns: ColumnDef<ResponseType>[] = [
     sortDescFirst: true,
   },
   {
-    accessorKey: "bookingStatusId",
+    accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => {
-      const statusId = row.getValue("bookingStatusId") as string;
-      const status = getBookingStatus(statusId);
-
-      return (
-        <Badge
-          variant={
-            status as "confirmed" | "checked-in" | "checked-out" | "cancelled"
-          }
-        >
-          {status}
-        </Badge>
-      );
-    },
+    cell: BookingStatusCell,
     sortDescFirst: true,
   },
   {
@@ -98,14 +85,3 @@ export const columns: ColumnDef<ResponseType>[] = [
     cell: ({ row }) => <Actions id={row.original.id} />,
   },
 ];
-
-// Maps status ID to status name for booking
-function getBookingStatus(statusId: string): string {
-  const statusMap: { [key: string]: string } = {
-    "1": "Confirmed",
-    "2": "Checked-in",
-    "3": "Checked-out",
-    "4": "Cancelled",
-  };
-  return statusMap[statusId] || "Unknown";
-}

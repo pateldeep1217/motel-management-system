@@ -8,9 +8,6 @@ const statCardVariants = cva("relative overflow-hidden p-6 transition-all", {
   variants: {
     intent: {
       total: "bg-muted/10 border-muted text-muted-foreground",
-      available: "bg-emerald-500/10 border-emerald-500 text-emerald-500",
-      occupied: "bg-rose-500/10 border-rose-500 text-rose-500",
-      cleaning: "bg-amber-500/10 border-amber-500 text-amber-500",
     },
     size: {
       sm: "p-4",
@@ -29,7 +26,7 @@ interface StatCardProps
     VariantProps<typeof statCardVariants> {
   title: string;
   value: number | string;
-  icon: React.ReactNode;
+  icon: React.ElementType;
   trend?: {
     value: number;
     label: string;
@@ -39,7 +36,7 @@ interface StatCardProps
 export function StatCard({
   title,
   value,
-  icon,
+  icon: Icon,
   trend,
   intent,
   size,
@@ -66,7 +63,10 @@ export function StatCard({
             </p>
           )}
         </div>
-        <div className="rounded-full p-2 bg-background/10">{icon}</div>
+        <div className="rounded-full p-2 bg-background/10">
+          {" "}
+          <Icon className="text-gray-400 w-6 h-6" />
+        </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-background/50 to-background/10" />
     </Card>

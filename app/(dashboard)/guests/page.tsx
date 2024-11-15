@@ -99,20 +99,16 @@ export default function GuestDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          title="Total Guests"
-          value={stats.total}
-          icon={<Users size={24} />}
-        />
+        <StatCard title="Total Guests" value={stats.total} icon={Users} />
         <StatCard
           title="Allowed to Rent"
           value={stats.allowed}
-          icon={<UserCheck2 size={24} />}
+          icon={UserCheck2}
         />
         <StatCard
           title="Blacklisted"
           value={stats.blacklisted}
-          icon={<UserMinus2 size={24} />}
+          icon={UserMinus2}
         />
       </div>
 

@@ -3,7 +3,13 @@ import { eq, asc, and } from "drizzle-orm";
 import { verifyAuth } from "@hono/auth-js";
 
 import { db } from "@/db";
-import { bookings, rooms, userMotels, bookingInsertSchema } from "@/db/schema";
+import {
+  bookings,
+  rooms,
+  userMotels,
+  bookingInsertSchema,
+  bookingStatuses,
+} from "@/db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
@@ -23,11 +29,16 @@ const app = new Hono()
           guestName: bookings.guestName,
           checkInDate: bookings.checkInDate,
           checkOutDate: bookings.checkOutDate,
-          bookingStatusId: bookings.bookingStatusId,
+          status: bookingStatuses.status,
+          statusId: bookings.bookingStatusId,
         })
         .from(bookings)
         .innerJoin(rooms, eq(bookings.roomId, rooms.id))
         .innerJoin(userMotels, eq(rooms.motelId, userMotels.motelId))
+        .innerJoin(
+          bookingStatuses,
+          eq(bookings.bookingStatusId, bookingStatuses.id)
+        )
         .where(eq(userMotels.userId, auth.token.id as string))
         .orderBy(asc(bookings.checkInDate));
 
@@ -41,6 +52,37 @@ const app = new Hono()
       return c.json({ error: "Internal server error" }, 500);
     }
   })
+  .get("/statuses", verifyAuth(), async (c) => {
+    const auth = c.get("authUser");
+
+    if (!auth?.token?.id) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    try {
+      const query = db
+        .select({
+          id: bookingStatuses.id,
+          status: bookingStatuses.status,
+        })
+        .from(bookingStatuses)
+        .orderBy(asc(bookingStatuses.status));
+
+      const rawData = await query;
+      const data = rawData.map((status) => ({
+        ...status,
+        status: status.status
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase()),
+      }));
+
+      return c.json({ data });
+    } catch (error) {
+      console.error("Error fetching statuses:", error);
+      return c.json({ error: "Internal server error" }, 500);
+    }
+  })
+
   .get(
     "/:id",
     zValidator(
