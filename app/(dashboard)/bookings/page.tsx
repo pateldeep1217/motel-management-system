@@ -1,24 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { utils, writeFile } from "xlsx";
-import {
-  Download,
-  RefreshCcw,
-  Plus,
-  Calendar,
-  UserCheck,
-  DoorClosed,
-  CreditCard,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/DataTable";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useGetBookings } from "@/features/bookings/api/use-get-bookings";
-import { columns } from "./columns";
-import { useNewBooking } from "@/features/bookings/hooks/useNewBooking";
-import StatCard from "@/components/StatCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -26,175 +11,229 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DateRangePicker } from "@/components/ui/DateRangePicker";
-import { useGetBookingStatuses } from "@/features/bookings/api/use-get-booking-statuses";
+import { DataTable } from "@/components/DataTable";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RefreshCcw,
+  DollarSign,
+  CreditCard,
+  BedDouble,
+  Percent,
+  TrendingUp,
+  Download,
+} from "lucide-react";
+import * as XLSX from "xlsx";
+import { columns } from "./columns";
 
 export default function BookingDashboard() {
-  const { onOpen } = useNewBooking();
-  const { data: bookings = [], isLoading, error, refetch } = useGetBookings();
-  const { data: bookingStatuses = [] } = useGetBookingStatuses();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState("daily");
+  const [filterValue, setFilterValue] = useState("");
+  const { data: bookings = [], refetch: refetchBookings } = useGetBookings();
 
-  console.log(bookings);
-  console.log(bookingStatuses);
+  useEffect(() => {
+    refetchBookings();
+  }, [currentDate, refetchBookings]);
 
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<
-    { from: Date; to: Date } | undefined
-  >(undefined);
-  const [searchQuery, setSearchQuery] = useState("");
+  const updateDate = (days: number) => {
+    setCurrentDate((prevDate) => {
+      const newDate = new Date(prevDate);
+      newDate.setDate(newDate.getDate() + days);
+      return newDate;
+    });
+  };
+  const getDateRange = useCallback(() => {
+    const start = new Date(currentDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(currentDate);
+    end.setHours(23, 59, 59, 999);
+    if (viewMode === "weekly") {
+      end.setDate(end.getDate() + 6);
+    } else if (viewMode === "monthly") {
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0);
+    }
+    return { start, end };
+  }, [currentDate, viewMode]);
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
-      console.log("Booking Status:", booking.status);
-      console.log("Booking Status ID:", booking.statusId);
-      console.log("Status Filter:", statusFilter);
-
-      const matchesStatus =
-        statusFilter === "all" || booking.statusId === statusFilter; // Use statusId for comparison
-      const matchesDateRange =
-        !dateRange ||
-        (new Date(booking.checkInDate) >= dateRange.from &&
-          new Date(booking.checkOutDate) <= dateRange.to);
-      const matchesSearch =
-        booking.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        booking.id.toLowerCase().includes(searchQuery.toLowerCase());
-
-      console.log("Matches Status:", matchesStatus);
-      console.log("Matches Date Range:", matchesDateRange);
-      console.log("Matches Search:", matchesSearch);
-
-      return matchesStatus && matchesDateRange && matchesSearch;
+      const bookingDate = new Date(booking.checkInDate);
+      const { start, end } = getDateRange();
+      const isInRange = bookingDate >= start && bookingDate <= end;
+      const matchesFilter =
+        booking.guestName.toLowerCase().includes(filterValue.toLowerCase()) ||
+        booking.id.toLowerCase().includes(filterValue.toLowerCase());
+      return isInRange && matchesFilter;
     });
-  }, [bookings, statusFilter, dateRange, searchQuery]);
+  }, [bookings, filterValue, getDateRange]);
 
-  const stats = useMemo(
-    () => ({
-      total: bookings.length,
-      upcoming: bookings.filter(
-        (booking) => new Date(booking.checkInDate) > new Date()
-      ).length,
-      active: bookings.filter(
-        (booking) =>
-          new Date(booking.checkInDate) <= new Date() &&
-          new Date(booking.checkOutDate) >= new Date()
-      ).length,
-      completed: bookings.filter(
-        (booking) => new Date(booking.checkOutDate) < new Date()
-      ).length,
-    }),
-    [bookings]
-  );
-
-  const exportToExcel = () => {
-    const ws = utils.json_to_sheet(filteredBookings);
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, "Bookings");
-    writeFile(wb, "bookings.xlsx");
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[500px] items-center justify-center">
-        <RefreshCcw className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+  const { metrics, totals } = useMemo(() => {
+    const totalRevenue = filteredBookings.reduce(
+      (sum, booking) => sum + parseFloat(booking.totalAmount),
+      0
     );
-  }
+    const occupiedRooms = new Set(
+      filteredBookings.map((booking) => booking.roomNumber)
+    ).size;
+    const totalRooms = 100; // Assuming 100 total rooms, adjust as needed
 
-  if (error) {
-    return (
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="text-destructive">Error</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-destructive">
-            Failed to load bookings: {error.message}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+    const cashTotal = filteredBookings
+      .filter((booking) => booking.paymentMethod === "Cash")
+      .reduce((sum, booking) => sum + parseFloat(booking.totalAmount), 0);
+
+    const cardTotal = filteredBookings
+      .filter((booking) => booking.paymentMethod === "Card")
+      .reduce((sum, booking) => sum + parseFloat(booking.totalAmount), 0);
+
+    return {
+      metrics: {
+        dailyRevenue: totalRevenue,
+        occupancyRate: (occupiedRooms / totalRooms) * 100,
+        roomNightsOccupied: occupiedRooms,
+        averageDailyRate: occupiedRooms > 0 ? totalRevenue / occupiedRooms : 0,
+      },
+      totals: {
+        cash: cashTotal,
+        card: cardTotal,
+        grand: cashTotal + cardTotal,
+      },
+    };
+  }, [filteredBookings]);
+
+  const exportToExcel = () => {
+    const workbook = XLSX.utils.book_new();
+
+    // Add bookings data
+    const bookingsWorksheet = XLSX.utils.json_to_sheet(filteredBookings);
+    XLSX.utils.book_append_sheet(workbook, bookingsWorksheet, "Bookings");
+
+    // Add totals data
+    const totalsData = [
+      { Label: "Cash Total", Value: totals.cash },
+      { Label: "Card Total", Value: totals.card },
+      { Label: "Grand Total", Value: totals.grand },
+    ];
+    const totalsWorksheet = XLSX.utils.json_to_sheet(totalsData);
+    XLSX.utils.book_append_sheet(workbook, totalsWorksheet, "Totals");
+
+    const footerData = [
+      [], // Empty row for spacing
+      ["Cash Total", totals.cash],
+      ["Card Total", totals.card],
+      ["Grand Total", totals.grand],
+    ];
+    XLSX.utils.sheet_add_aoa(bookingsWorksheet, footerData, { origin: -1 });
+
+    // Generate Excel file
+    XLSX.writeFile(workbook, "bookings_report.xlsx");
+  };
 
   return (
-    <div className="h-full space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            Booking Management
-          </h2>
-          <p className="text-muted-foreground">
-            Manage and monitor booking status
-          </p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Booking Overview
+        </h2>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={exportToExcel}>
-            <Download className="mr-2 h-4 w-4" />
-            Export
+          <Button variant="outline" size="icon" onClick={() => updateDate(-1)}>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button onClick={onOpen} size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            New Booking
+          <span className="text-lg">{formatDate(currentDate)}</span>
+          <Button variant="outline" size="icon" onClick={() => updateDate(1)}>
+            <ChevronRight className="h-4 w-4" />
           </Button>
+          <Select value={viewMode} onValueChange={setViewMode}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select view" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Bookings" value={stats.total} icon={Calendar} />
-        <StatCard
-          title="Upcoming Bookings"
-          value={stats.upcoming}
-          icon={UserCheck}
-        />
-        <StatCard
-          title="Active Bookings"
-          value={stats.active}
-          icon={DoorClosed}
-        />
-        <StatCard
-          title="Completed Bookings"
-          value={stats.completed}
-          icon={CreditCard}
-        />
+        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+          <div className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <span className="text-sm font-medium">Daily Revenue</span>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-2xl font-bold">
+            ${metrics.dailyRevenue.toFixed(2)}
+          </div>
+          <p className="text-xs text-green-500">↑ 0% vs previous {viewMode}</p>
+        </div>
+        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+          <div className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <span className="text-sm font-medium">Occupancy Rate</span>
+            <Percent className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-2xl font-bold">
+            {metrics.occupancyRate.toFixed(1)}%
+          </div>
+          <p className="text-xs text-green-500">↑ 0% vs previous {viewMode}</p>
+        </div>
+        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+          <div className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <span className="text-sm font-medium">Room Nights Occupied</span>
+            <BedDouble className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-2xl font-bold">{metrics.roomNightsOccupied}</div>
+          <p className="text-xs text-green-500">↑ 0% vs previous {viewMode}</p>
+        </div>
+        <div className="rounded-lg border bg-card p-6 text-card-foreground shadow-sm">
+          <div className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <span className="text-sm font-medium">Average Daily Rate</span>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div className="text-2xl font-bold">
+            ${metrics.averageDailyRate.toFixed(2)}
+          </div>
+          <p className="text-xs text-green-500">↑ 0% vs previous {viewMode}</p>
+        </div>
       </div>
 
-      <Card className="border-0">
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center mb-6">
-            <div className="flex-1">
-              <Input
-                placeholder="Search bookings..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  {bookingStatuses.map((status) => (
-                    <SelectItem key={status.id} value={status.id}>
-                      {status.status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <DateRangePicker value={dateRange} onValueChange={setDateRange} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => refetch()}
-                className="h-10 w-10 shrink-0 bg-background border border-input"
-              >
-                <RefreshCcw className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <DataTable columns={columns} data={filteredBookings} />
-        </CardContent>
-      </Card>
+      <div className="rounded-lg  bg-card">
+        <div className="flex items-center p-4 gap-4">
+          <Input
+            placeholder="Search bookings..."
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            className="max-w-sm"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => refetchBookings()}
+            className="ml-auto"
+          >
+            <RefreshCcw className="h-4 w-4" />
+          </Button>
+          <Button onClick={exportToExcel}>
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+        </div>
+        <DataTable
+          columns={columns}
+          data={filteredBookings}
+          showTotals={true}
+          totals={totals}
+        />
+      </div>
     </div>
   );
 }

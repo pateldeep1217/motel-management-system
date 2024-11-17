@@ -3,6 +3,7 @@ import { InferRequestType, InferResponseType } from "hono";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { client } from "@/lib/hono";
+import { syncRoomAvailability } from "@/lib/room-availability-sync";
 
 type ResponseType = InferResponseType<
   (typeof client.api.bookings)[":id"]["$patch"]

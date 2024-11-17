@@ -65,7 +65,7 @@ export function StatCard({
         </div>
         <div className="rounded-full p-2 bg-background/10">
           {" "}
-          <Icon className="text-gray-400 w-6 h-6" />
+          <Icon className=" w-6 h-6" />
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-background/50 to-background/10" />

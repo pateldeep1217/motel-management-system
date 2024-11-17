@@ -7,22 +7,24 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   ArrowUpDown,
+  Banknote,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  CreditCard,
 } from "lucide-react";
 import {
   Select,
@@ -35,11 +37,19 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  showTotals?: boolean;
+  totals?: {
+    cash: number;
+    card: number;
+    grand: number;
+  };
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  showTotals = false,
+  totals,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -66,7 +76,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className=" bg-accent">
+                  <TableHead key={header.id} className="bg-accent">
                     {header.isPlaceholder ? null : (
                       <Button
                         variant="ghost"
@@ -115,6 +125,38 @@ export function DataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
+          {showTotals && totals && (
+            <TableFooter>
+              <TableRow className="bg-muted/50">
+                <TableCell colSpan={columns.length}>
+                  <div className="flex flex-wrap justify-between items-center py-2">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <Banknote className="h-5 w-5 text-green-600" />
+                        <span className="text-sm font-medium">Cash Total:</span>
+                        <span className="text-sm font-bold">
+                          ${totals.cash.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="h-5 w-5 text-blue-600" />
+                        <span className="text-sm font-medium">Card Total:</span>
+                        <span className="text-sm font-bold">
+                          ${totals.card.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium">Grand Total:</span>
+                      <span className="text-lg font-bold">
+                        ${totals.grand.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
 
@@ -150,7 +192,7 @@ export function DataTable<TData, TValue>({
           </div>
 
           {/* Pagination controls */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 my-4">
             <Button
               variant="outline"
               size="icon"

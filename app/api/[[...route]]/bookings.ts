@@ -31,6 +31,9 @@ const app = new Hono()
           checkOutDate: bookings.checkOutDate,
           status: bookingStatuses.status,
           statusId: bookings.bookingStatusId,
+          totalAmount: bookings.totalAmount,
+          paymentMethod: bookings.paymentMethod,
+          dailyRate: bookings.dailyRate,
         })
         .from(bookings)
         .innerJoin(rooms, eq(bookings.roomId, rooms.id))
@@ -157,13 +160,15 @@ const app = new Hono()
         .insert(bookings)
         .values({
           roomId: values.roomId,
-          guestId: values.guestId, // Include guestId
+          guestId: values.guestId,
           guestName: values.guestName,
-          checkInDate: values.checkInDate, // Ensure the field names match your schema
+          checkInDate: values.checkInDate,
           checkOutDate: values.checkOutDate,
-          bookingStatusId: values.bookingStatusId, // Ensure the field names match your schema
-          totalAmount: values.totalAmount, // Include totalAmount
+          bookingStatusId: values.bookingStatusId,
+          totalAmount: values.totalAmount,
+          dailyRate: values.dailyRate,
           motelId: userMotel.motelId,
+          paymentMethod: values.paymentMethod,
           createdAt: new Date(),
           updatedAt: new Date(),
         })

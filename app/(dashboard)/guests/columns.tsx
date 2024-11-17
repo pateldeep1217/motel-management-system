@@ -16,7 +16,6 @@ import { InferResponseType } from "hono";
 import { client } from "@/lib/hono";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Define the Room type
 export type ResponseType = InferResponseType<
   typeof client.api.guests.$get,
   200

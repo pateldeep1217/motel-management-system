@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { client } from "@/lib/hono"; // Your API client
 import { toast } from "sonner";
+import { syncRoomAvailability } from "@/lib/room-availability-sync";
 
 type ResponseType = InferResponseType<
   (typeof client.api.bookings)["$post"],

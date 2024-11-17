@@ -2,6 +2,7 @@ import {
   boolean,
   integer,
   numeric,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -10,6 +11,8 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 
 import { relations } from "drizzle-orm";
+
+export const PaymentMethodEnum = pgEnum("payment_method", ["Card", "Cash"]);
 
 // User Roles Table
 export const userRoles = pgTable("user_roles", {
@@ -142,6 +145,8 @@ export const bookings = pgTable("bookings", {
     .notNull()
     .references(() => bookingStatuses.id, { onDelete: "cascade" }),
   totalAmount: numeric("total_amount").notNull(),
+  dailyRate: numeric("daily_rate", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: PaymentMethodEnum("payment_method").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
