@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusCircle, AlertCircle, Building2, Menu } from "lucide-react";
-import Link from "next/link";
-import Sidebar from "@/components/Sidebar/Sidebar";
-import { useGetUserMotels } from "@/features/motels/api/use-get-user-motels";
-import { usePathname } from "next/navigation";
-import UserButton from "@/features/auth/components/UserButton";
+import { AlertCircle, Building2, Menu, PlusCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import * as Headless from "@headlessui/react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import Sidebar from "@/components/Sidebar/Sidebar";
+import UserButton from "@/features/auth/components/UserButton";
+import { useGetUserMotels } from "@/features/motels/api/use-get-user-motels";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -27,11 +29,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const renderHeader = () => {
     if (isLoading) {
-      return (
-        <div className="w-full">
-          <Skeleton className="h-8 w-48" />
-        </div>
-      );
+      return <Skeleton className="h-8 w-48" />;
     }
 
     if (error) {
@@ -49,27 +47,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     if (currentMotel) {
       return (
-        <div className="flex items-center gap-2 w-full">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-muted-foreground" />
-            <h1 className="text-xl font-semibold">
-              {currentMotel.charAt(0).toUpperCase() + currentMotel.slice(1)}
-            </h1>
-          </div>
-
-          <div className="ml-auto lg:hidden">
-            <UserButton
-              user={session?.user || { name: null, email: null, image: null }}
-              avatarOnly={true}
-            />
-          </div>
+        <div className="flex items-center gap-2">
+          <Building2 className="h-5 w-5 text-muted-foreground" />
+          <h1 className="text-xl font-semibold">
+            {currentMotel.charAt(0).toUpperCase() + currentMotel.slice(1)}
+          </h1>
         </div>
       );
     }
 
     if (!isCreateMotelPage) {
       return (
-        <div className="text-center py-8">
+        <div className="flex flex-col items-center justify-center py-8">
           <h1 className="text-2xl font-bold mb-4">No Motel Found</h1>
           <p className="text-muted-foreground mb-6">
             Get started by creating your first motel
@@ -91,42 +80,62 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="relative isolate flex min-h-svh w-full bg-white max-lg:flex-col lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
+      {/* Sidebar on desktop */}
+      <div className="fixed inset-y-0 left-0 w-64 max-lg:hidden">
+        <Sidebar mobileOpen={false} toggleMobileOpen={() => {}} />
+      </div>
+
+      {/* Sidebar on mobile */}
+
       <Sidebar
         mobileOpen={mobileOpen}
-        toggleMobileOpen={() => setMobileOpen((prev) => !prev)}
+        toggleMobileOpen={() => setMobileOpen(false)}
       />
-      <div className="flex-1 flex flex-col overflow-hidden lg:pl-64">
-        <div className="flex-1 overflow-y-auto">
-          <div className="lg:rounded-lg lg:bg-card lg:p-10 lg:shadow-sm lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-card dark:lg:ring-white/10 m-2">
-            <header className="flex h-14 items-center max-w-full md:max-w-7xl mx-auto">
-              <div className="container flex items-center gap-4 px-4 max-w-full">
-                <button
-                  onClick={() => setMobileOpen((prev) => !prev)}
-                  className="lg:hidden p-2 text-white"
-                  aria-label="Toggle Sidebar"
-                >
-                  <Menu className="h-6 w-6" />
-                </button>
-                {renderHeader()}
+
+      {/* Navbar on mobile */}
+      <header className="flex items-center px-4 lg:hidden">
+        <div className="py-2.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open navigation"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="min-w-0 flex-1">{renderHeader()}</div>
+        <div className="ml-auto">
+          <UserButton
+            user={session?.user || { name: null, email: null, image: null }}
+            avatarOnly={true}
+          />
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="flex flex-1 flex-col pb-2 lg:min-w-0 lg:pl-64 lg:pr-2 lg:pt-2">
+        <div className="grow p-6 lg:rounded-lg bg-background lg:ml-2 lg:p-10 lg:shadow-sm lg:ring-1 lg:ring-zinc-950/5 0 dark:lg:ring-white/10">
+          <div className="mx-auto max-w-6xl">
+            {/* Desktop header */}
+            <div className="mb-6 hidden lg:block">{renderHeader()}</div>
+
+            {/* Main content */}
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-full max-w-md" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
               </div>
-            </header>
-            <main className="container mx-auto px-4 py-6 max-w-full md:max-w-7xl">
-              {isLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-8 w-full max-w-md" />
-                  <Skeleton className="h-32 w-full" />
-                  <Skeleton className="h-32 w-full" />
-                </div>
-              ) : (
-                (currentMotel || isCreateMotelPage) && (
-                  <div className="relative">{children}</div>
-                )
-              )}
-            </main>
+            ) : (
+              (currentMotel || isCreateMotelPage) && (
+                <div className="min-h-[calc(100vh-10rem)]">{children}</div>
+              )
+            )}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

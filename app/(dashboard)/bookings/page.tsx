@@ -17,7 +17,6 @@ import {
   ChevronRight,
   RefreshCcw,
   DollarSign,
-  CreditCard,
   BedDouble,
   Percent,
   TrendingUp,

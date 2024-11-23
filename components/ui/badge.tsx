@@ -9,7 +9,7 @@ type BookingStatus =
   | "cancelled"
   | "no-show"
   | "reserved";
-type RoomStatus = "available" | "occupied" | "maintenance" | "cleaning";
+export type RoomStatus = "available" | "occupied" | "maintenance" | "cleaning";
 type StatusVariant = BookingStatus | RoomStatus;
 
 // Define the base styles and variants

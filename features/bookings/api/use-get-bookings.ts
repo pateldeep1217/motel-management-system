@@ -2,14 +2,15 @@
 import { client } from "@/lib/hono";
 import { useQuery } from "@tanstack/react-query";
 
-export const useGetBookings = () => {
+export const useGetBookings = (id?: string) => {
   return useQuery({
-    queryKey: ["bookings"],
+    queryKey: id ? ["bookings", id] : ["bookings"],
     queryFn: async () => {
       const response = await client.api.bookings.$get({
         query: {
           page: "1",
           limit: "10",
+          ...(id && { id }), // Conditionally add id to query params if provided
         },
       });
 

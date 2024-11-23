@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, asc, and } from "drizzle-orm";
+import { eq, asc, and, gte, lte, or } from "drizzle-orm";
 import { verifyAuth } from "@hono/auth-js";
 
 import { db } from "@/db";
@@ -9,6 +9,8 @@ import {
   userMotels,
   bookingInsertSchema,
   bookingStatuses,
+  guests,
+  roomStatuses,
 } from "@/db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
@@ -25,6 +27,7 @@ const app = new Hono()
       const query = db
         .select({
           id: bookings.id,
+          roomId: bookings.roomId,
           roomNumber: rooms.number,
           guestName: bookings.guestName,
           checkInDate: bookings.checkInDate,
@@ -138,10 +141,23 @@ const app = new Hono()
       }
     }
   )
+
   .post(
     "/",
     verifyAuth(),
-    zValidator("json", bookingInsertSchema),
+    zValidator(
+      "json",
+      bookingInsertSchema.pick({
+        guestName: true,
+        roomId: true,
+        checkInDate: true,
+        checkOutDate: true,
+        bookingStatusId: true,
+        totalAmount: true,
+        dailyRate: true,
+        paymentMethod: true,
+      })
+    ),
     async (c) => {
       const auth = c.get("authUser");
 
@@ -156,18 +172,97 @@ const app = new Hono()
         .from(userMotels)
         .where(eq(userMotels.userId, auth.token.id as string));
 
+      if (!userMotel) {
+        return c.json({ error: "User's motel not found" }, 404);
+      }
+
+      // Validate and parse dates
+      const checkIn = new Date(values.checkInDate);
+      const checkOut = new Date(values.checkOutDate);
+
+      // Check room availability
+      const [existingBooking] = await db
+        .select()
+        .from(bookings)
+        .where(
+          and(
+            eq(bookings.roomId, values.roomId),
+            or(
+              and(
+                gte(bookings.checkInDate, checkIn),
+                lte(bookings.checkInDate, checkOut)
+              ),
+              and(
+                gte(bookings.checkOutDate, checkIn),
+                lte(bookings.checkOutDate, checkOut)
+              )
+            )
+          )
+        )
+        .limit(1);
+
+      if (existingBooking) {
+        return c.json(
+          { error: "Room not available for the selected dates" },
+          400
+        );
+      }
+
+      // Retrieve the ID for the "Confirmed" status
+      const [confirmedStatus] = await db
+        .select()
+        .from(bookingStatuses)
+        .where(eq(bookingStatuses.status, "Confirmed"))
+        .limit(1);
+
+      if (!confirmedStatus) {
+        return c.json({ error: "Confirmed status not found" }, 400);
+      }
+
+      // Use the provided status ID or default to "Confirmed"
+      const statusId = values.bookingStatusId || confirmedStatus.id;
+
+      // Retrieve or create guestId based on guestName
+      let guestId: string;
+      const [existingGuest] = await db
+        .select()
+        .from(guests)
+        .where(eq(guests.name, values.guestName));
+
+      if (existingGuest) {
+        guestId = existingGuest.id as string;
+      } else {
+        const [newGuest] = await db
+          .insert(guests)
+          .values({
+            name: values.guestName,
+            motelId: userMotel.motelId,
+            idProof: "",
+            email: "",
+            phone: "",
+            idProofImageUrl: "",
+            doNotRent: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+
+        guestId = newGuest.id as string;
+      }
+
+      // Create booking
       const data = await db
         .insert(bookings)
         .values({
-          roomId: values.roomId,
-          guestId: values.guestId,
+          roomId: values.roomId as string,
+          guestId: guestId,
           guestName: values.guestName,
-          checkInDate: values.checkInDate,
-          checkOutDate: values.checkOutDate,
-          bookingStatusId: values.bookingStatusId,
+          checkInDate: checkIn,
+          checkOutDate: checkOut,
+          bookingStatusId: statusId, // Use the determined status
           totalAmount: values.totalAmount,
           dailyRate: values.dailyRate,
-          motelId: userMotel.motelId,
+          motelId: userMotel.motelId as string,
           paymentMethod: values.paymentMethod,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -181,7 +276,99 @@ const app = new Hono()
       return c.json({ data: data[0] });
     }
   )
+  .post("/check-in/:bookingId", verifyAuth(), async (c) => {
+    const { bookingId } = c.req.param();
+    const auth = c.get("authUser");
 
+    if (!auth.token?.id) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, bookingId))
+      .limit(1);
+
+    if (!booking) {
+      return c.json({ error: "Booking not found" }, 404);
+    }
+
+    const [occupiedStatus] = await db
+      .select()
+      .from(roomStatuses)
+      .where(eq(roomStatuses.status, "Occupied"))
+      .limit(1);
+
+    if (!occupiedStatus) {
+      return c.json({ error: "Occupied status not found" }, 400);
+    }
+
+    const [checkedInStatus] = await db
+      .select()
+      .from(bookingStatuses)
+      .where(eq(bookingStatuses.status, "CheckedIn"))
+      .limit(1);
+    if (!checkedInStatus) {
+      return c.json({ error: "CheckedIn status not found" }, 400);
+    }
+
+    try {
+      await db
+        .update(rooms)
+        .set({ statusId: occupiedStatus.id, updatedAt: new Date() })
+        .where(eq(rooms.id, booking.roomId));
+
+      await db
+        .update(bookings)
+        .set({ bookingStatusId: checkedInStatus.id, updatedAt: new Date() })
+        .where(eq(bookings.id, bookingId));
+
+      return c.json({ message: "Checked-in successfully" });
+    } catch (error) {
+      console.error("Update error:", error);
+      return c.json({ error: "Internal server error" }, 500);
+    }
+  })
+
+  .post("/check-out/:bookingId", verifyAuth(), async (c) => {
+    const { bookingId } = c.req.param();
+    const auth = c.get("authUser");
+
+    if (!auth.token?.id) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, bookingId))
+      .limit(1);
+
+    if (!booking) {
+      return c.json({ error: "Booking not found" }, 404);
+    }
+
+    const [availableStatus] = await db
+      .select()
+      .from(roomStatuses)
+      .where(eq(roomStatuses.status, "Available"))
+      .limit(1);
+
+    await db.transaction(async (trx) => {
+      await trx
+        .update(rooms)
+        .set({ statusId: availableStatus.id })
+        .where(eq(rooms.id, booking.roomId));
+
+      await trx
+        .update(bookings)
+        .set({ bookingStatusId: "Checked-out", updatedAt: new Date() })
+        .where(eq(bookings.id, bookingId));
+    });
+
+    return c.json({ message: "Checked-out successfully" });
+  })
   .patch(
     "/:id",
     verifyAuth(),

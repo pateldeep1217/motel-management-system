@@ -210,6 +210,65 @@ const app = new Hono()
       return c.json({ data: data[0] });
     }
   )
+  .patch(
+    "/updatestatus/:id",
+    verifyAuth(),
+    zValidator(
+      "param",
+      z.object({
+        id: z.string().uuid(),
+      })
+    ),
+    zValidator(
+      "json",
+      z.object({
+        status: z.string(), // Now accepts any string
+      })
+    ),
+    async (c) => {
+      const auth = c.get("authUser");
+      const { id } = c.req.valid("param");
+      const { status } = c.req.valid("json");
+
+      if (!auth.token?.id) {
+        return c.json({ error: "Unauthorized" }, 401);
+      }
+
+      try {
+        const [userMotel] = await db
+          .select()
+          .from(userMotels)
+          .where(eq(userMotels.userId, auth.token.id as string));
+
+        if (!userMotel) {
+          return c.json({ error: "User not associated with any motel" }, 400);
+        }
+
+        const [updatedRoom] = await db
+          .update(rooms)
+          .set({
+            statusId: status, // Changed from statusId to status
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(rooms.id, id as string),
+              eq(rooms.motelId, userMotel.motelId)
+            )
+          )
+          .returning();
+
+        if (!updatedRoom) {
+          return c.json({ error: "Room not found or not updated" }, 404);
+        }
+
+        return c.json({ data: updatedRoom });
+      } catch (error) {
+        console.error("Error updating room status:", error);
+        return c.json({ error: "Internal server error" }, 500);
+      }
+    }
+  )
 
   .delete(
     "/:id",

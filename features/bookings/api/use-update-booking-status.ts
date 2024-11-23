@@ -11,25 +11,31 @@ type RequestType = InferRequestType<
   (typeof client.api.bookings)[":id"]["$patch"]
 >["json"];
 
-export const useEditBooking = (id?: string) => {
+export const useUpdateBookingStatus = () => {
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<ResponseType, Error, RequestType>({
-    mutationFn: async (json) => {
+  const mutation = useMutation<
+    ResponseType,
+    Error,
+    { id: string; statusId: string }
+  >({
+    mutationFn: async ({ id, statusId }) => {
       const response = await client.api.bookings[":id"]["$patch"]({
         param: { id },
-        json,
+        json: { bookingStatusId: statusId } as RequestType,
       });
       return await response.json();
     },
-    onSuccess: () => {
-      toast.success("Booking updated");
+    onSuccess: (_, variables) => {
+      toast.success("Booking status updated successfully");
 
-      queryClient.invalidateQueries({ queryKey: ["booking", { id }] });
+      queryClient.invalidateQueries({
+        queryKey: ["booking", { id: variables.id }],
+      });
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
     },
-    onError: () => {
-      toast.error("Failed to update booking");
+    onError: (error) => {
+      toast.error(`Failed to update booking status: ${error.message}`);
     },
   });
 

@@ -9,7 +9,7 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "bun ./scripts/seed.ts",
+    "db:seed": " ./scripts/generateData.ts",
     "db:studio": "drizzle-kit studio",
     "seed": "bun run db/scripts/generateData.ts"
   },

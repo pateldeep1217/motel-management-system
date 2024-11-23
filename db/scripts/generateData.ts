@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { v4 as uuidv4 } from "uuid";
 import * as dotenv from "dotenv";
-import { eq } from "drizzle-orm";
 import { db } from "..";
 
 import {
@@ -11,13 +10,28 @@ import {
   guests,
   bookings,
 } from "../schema";
+import { eq } from "drizzle-orm";
 
 dotenv.config();
 
 const motelId = "55c51844-6cd2-4d5d-8e45-d1fed6ad28b9";
 
-const roomStatusesList = ["Available", "Occupied", "Maintenance", "Cleaning"];
-const bookingStatusesList = ["Confirmed", "Pending", "Cancelled"];
+const roomStatusesList = [
+  "Available",
+  "Occupied",
+  "Maintenance",
+  "Cleaning",
+  "Reserved",
+  "Blocked",
+];
+const bookingStatusesList = [
+  "Confirmed",
+  "Pending",
+  "Cancelled",
+  "CheckedIn",
+  "CheckedOut",
+  "NoShow",
+];
 
 const roomStatusIds = roomStatusesList.reduce((acc, status) => {
   acc[status] = uuidv4();
@@ -98,7 +112,7 @@ async function seed() {
 
     // Generate and insert guests
     console.log("Inserting guests...");
-    const guestsData = Array.from({ length: 100 }, () => ({
+    const guestsData = Array.from({ length: 50 }, () => ({
       id: uuidv4(),
       motelId,
       name: faker.person.fullName(),
@@ -111,154 +125,86 @@ async function seed() {
 
     await db.insert(guests).values(guestsData);
 
-    console.log("Inserting bookings...");
-    const threeMonthsAgo = new Date(
-      now.getFullYear(),
-      now.getMonth() - 3,
-      now.getDate()
-    );
+    console.log("Part 1 seeding completed successfully!");
 
-    // Fetch room data
-    const roomData = await db.select().from(rooms);
-
-    // Fetch guest data
-    const guestIds = (await db.select().from(guests)).map((guest) => ({
-      id: guest.id,
-      name: guest.name,
-    }));
-
-    const bookingsData = [];
-    let monthlyRevenue = 0;
-    const targetMinRevenue = 25000;
-    const targetMaxRevenue = 30000;
-
-    // Function to generate bookings for a specific room
-
-    const generateBookingsForRoom = (room, startDate, endDate, isWeekly) => {
-      let currentDate = new Date(startDate);
-      while (currentDate <= endDate) {
-        if (
-          monthlyRevenue < targetMinRevenue ||
-          (monthlyRevenue < targetMaxRevenue && Math.random() < 0.7)
-        ) {
-          const guest = faker.helpers.arrayElement(guestIds);
-          const checkInDate = createDate(currentDate);
-          const checkOutDate = createDate(
-            new Date(
-              checkInDate.getTime() + (isWeekly ? 7 : 1) * 24 * 60 * 60 * 1000
-            )
-          );
-
-          // Corrected total amount calculation
-          const totalAmount = isWeekly ? room.price : room.price * 7;
-
-          const bookingStatus = faker.helpers.arrayElement([
-            bookingStatusIds["Confirmed"],
-            bookingStatusIds["Pending"],
-            bookingStatusIds["Cancelled"],
-          ]);
-
-          bookingsData.push({
-            id: uuidv4(),
-            roomId: room.id,
-            guestId: guest.id,
-            guestName: guest.name,
-            motelId,
-            checkInDate,
-            checkOutDate,
-            bookingStatusId: bookingStatus,
-            totalAmount,
-            dailyRate: isWeekly ? room.price / 7 : room.price, // Corrected daily rate
-            paymentMethod: faker.helpers.arrayElement(["Card", "Cash"]),
-            createdAt: now,
-            updatedAt: now,
-          });
-
-          if (bookingStatus === bookingStatusIds["Confirmed"]) {
-            monthlyRevenue += totalAmount;
-          }
-        }
-
-        currentDate.setDate(currentDate.getDate() + (isWeekly ? 7 : 1));
-
-        // Reset monthly revenue at the start of each month
-        if (currentDate.getDate() === 1) {
-          monthlyRevenue = 0;
-        }
-      }
-    };
-
-    // Generate bookings for each room
-    for (const room of roomData) {
-      const isKitchenette = room.type === "Kitchenette";
-      const isWeekly = isKitchenette;
-      generateBookingsForRoom(room, threeMonthsAgo, now, isWeekly);
-    }
-
-    // Update room statuses based on current bookings
-    const todayStart = createDate(now);
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-
-    for (const room of roomData) {
-      const currentBooking = bookingsData.find(
-        (booking) =>
-          booking.roomId === room.id &&
-          booking.checkInDate < todayEnd &&
-          booking.checkOutDate > todayStart &&
-          booking.bookingStatusId === bookingStatusIds["Confirmed"]
-      );
-
-      if (currentBooking) {
-        await db
-          .update(rooms)
-          .set({ statusId: roomStatusIds["Occupied"] })
-          .where(eq(rooms.id, room.id));
-      }
-    }
-
-    // Insert bookings in batches
-    const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
-      const chunks = [];
-      for (let i = 0; i < array.length; i += chunkSize) {
-        chunks.push(array.slice(i, i + chunkSize));
-      }
-      return chunks;
-    };
-
-    const batchSize = 1000;
-    const bookingsBatches = chunkArray(bookingsData, batchSize);
-
-    for (const batch of bookingsBatches) {
-      await db.insert(bookings).values(batch);
-    }
-
-    // Calculate actual monthly revenue
-    const calculateMonthlyRevenue = () => {
-      const revenueByMonth = {};
-      bookingsData.forEach((booking) => {
-        if (booking.bookingStatusId === bookingStatusIds["Confirmed"]) {
-          const month = booking.checkInDate.getMonth();
-          const year = booking.checkInDate.getFullYear();
-          const key = `${year}-${month}`;
-          revenueByMonth[key] =
-            (revenueByMonth[key] || 0) + booking.totalAmount;
-        }
-      });
-      return revenueByMonth;
-    };
-
-    const monthlyRevenues = calculateMonthlyRevenue();
-
-    console.log("Seeding completed successfully!");
-    console.log("Monthly revenues:");
-    Object.entries(monthlyRevenues).forEach(([month, revenue]) => {
-      console.log(`${month}: $${revenue.toFixed(2)}`);
-    });
-    console.log(`Total bookings generated: ${bookingsData.length}`);
+    // Proceed to generate bookings for today and tomorrow
+    await generateBookings();
   } catch (error) {
     console.error("Error seeding database:", error);
     throw error;
   }
+}
+
+// Generate bookings for today and tomorrow
+async function generateBookings() {
+  const now = new Date();
+  const today = createDate(now);
+  const tomorrow = createDate(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+
+  const roomData = await db.select().from(rooms);
+  const guestData = await db.select().from(guests);
+
+  const guestIds = guestData.map((guest) => guest.id);
+
+  const bookingsData = [];
+
+  const generateBooking = (room, checkInDate, checkOutDate, status) => {
+    const guestId = faker.helpers.arrayElement(guestIds);
+    bookingsData.push({
+      id: uuidv4(),
+      roomId: room.id,
+      guestId,
+      guestName:
+        guestData.find((guest) => guest.id === guestId)?.name || "Unknown",
+      motelId,
+      checkInDate,
+      checkOutDate,
+      bookingStatusId: status,
+      totalAmount:
+        room.price *
+        Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)),
+      dailyRate: room.price,
+      paymentMethod: faker.helpers.arrayElement(["Card", "Cash"]),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  };
+
+  // Generate bookings for today and set room status to "Occupied"
+  for (let i = 0; i < 10; i++) {
+    const room = roomData.find((room) => room.number === 111 + i);
+    if (room) {
+      generateBooking(room, today, tomorrow, bookingStatusIds["CheckedIn"]);
+      await db
+        .update(rooms)
+        .set({ statusId: roomStatusIds["Occupied"], updatedAt: new Date() })
+        .where(eq(rooms.id, room.id));
+    }
+  }
+
+  // Generate bookings for tomorrow and set room status to "Reserved"
+  for (let i = 0; i < 10; i++) {
+    const room = roomData.find(
+      (room) => String(room.number) === String(111 + i)
+    );
+    if (room) {
+      generateBooking(
+        room,
+        tomorrow,
+        new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000),
+        bookingStatusIds["Confirmed"]
+      );
+      await db
+        .update(rooms)
+        .set({ statusId: roomStatusIds["Reserved"], updatedAt: new Date() })
+        .where(eq(rooms.id, room.id));
+    }
+  }
+
+  // Insert bookings
+  await db.insert(bookings).values(bookingsData);
+
+  console.log("Bookings for today and tomorrow inserted successfully!");
 }
 
 seed().catch(console.error);
