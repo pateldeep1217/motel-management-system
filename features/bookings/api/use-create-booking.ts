@@ -15,10 +15,22 @@ export const useCreateBooking = () => {
   const queryClient = useQueryClient();
   const mutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async (json) => {
-      const response = await client.api.bookings.$post({ json });
+      // Convert dates to ISO strings before sending the request
+      const payload = {
+        ...json,
+        checkInDate: new Date(json.checkInDate).toISOString(),
+        checkOutDate: new Date(json.checkOutDate).toISOString(),
+      };
+
+      const response = await client.api.bookings.$post({ json: payload });
+      console.log("Payload being sent:", payload);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`API Error (${response.status}): ${errorData}`);
+        console.error(
+          `Error creating booking: ${response.status} ${response.statusText}`
+        );
+        console.error(await response.text());
+        throw new Error("Invalid JSON response");
       }
       return await response.json();
     },

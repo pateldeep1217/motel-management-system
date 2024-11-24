@@ -29,6 +29,8 @@ const app = new Hono()
           id: bookings.id,
           roomId: bookings.roomId,
           roomNumber: rooms.number,
+          roomStatusId: rooms.statusId,
+          roomStatus: roomStatuses.status,
           guestName: bookings.guestName,
           checkInDate: bookings.checkInDate,
           checkOutDate: bookings.checkOutDate,
@@ -45,6 +47,7 @@ const app = new Hono()
           bookingStatuses,
           eq(bookings.bookingStatusId, bookingStatuses.id)
         )
+        .innerJoin(roomStatuses, eq(rooms.statusId, roomStatuses.id))
         .where(eq(userMotels.userId, auth.token.id as string))
         .orderBy(asc(bookings.checkInDate));
 
@@ -147,6 +150,7 @@ const app = new Hono()
     verifyAuth(),
     zValidator(
       "json",
+
       bookingInsertSchema.pick({
         guestName: true,
         roomId: true,
@@ -159,9 +163,12 @@ const app = new Hono()
       })
     ),
     async (c) => {
+      console.log("hit");
       const auth = c.get("authUser");
 
       const values = c.req.valid("json");
+      console.log(values);
+      console.log("recevied payload: ", c.req.parseBody);
 
       if (!auth || !auth.token?.id) {
         return c.json({ error: "Unauthorized" }, 401);
@@ -179,6 +186,8 @@ const app = new Hono()
       // Validate and parse dates
       const checkIn = new Date(values.checkInDate);
       const checkOut = new Date(values.checkOutDate);
+      console.log("Parsed check-in date:", checkIn);
+      console.log("Parsed check-out date:", checkOut);
 
       // Check room availability
       const [existingBooking] = await db
@@ -349,25 +358,44 @@ const app = new Hono()
       return c.json({ error: "Booking not found" }, 404);
     }
 
-    const [availableStatus] = await db
+    const [underCleaningStatus] = await db
       .select()
       .from(roomStatuses)
-      .where(eq(roomStatuses.status, "Available"))
+      .where(eq(roomStatuses.status, "Under Cleaning"))
       .limit(1);
 
-    await db.transaction(async (trx) => {
-      await trx
+    if (!underCleaningStatus) {
+      return c.json({ error: "Under Cleaning status not found" }, 400);
+    }
+
+    const [checkedOutStatus] = await db
+      .select()
+      .from(bookingStatuses)
+      .where(eq(bookingStatuses.status, "CheckedOut"))
+      .limit(1);
+
+    if (!checkedOutStatus) {
+      return c.json({ error: "CheckedOut status not found" }, 400);
+    }
+
+    try {
+      // Update room to "Under Cleaning"
+      await db
         .update(rooms)
-        .set({ statusId: availableStatus.id })
+        .set({ statusId: underCleaningStatus.id, updatedAt: new Date() })
         .where(eq(rooms.id, booking.roomId));
 
-      await trx
+      // Update booking to "CheckedOut"
+      await db
         .update(bookings)
-        .set({ bookingStatusId: "Checked-out", updatedAt: new Date() })
+        .set({ bookingStatusId: checkedOutStatus.id, updatedAt: new Date() })
         .where(eq(bookings.id, bookingId));
-    });
 
-    return c.json({ message: "Checked-out successfully" });
+      return c.json({ message: "Checked-out successfully" });
+    } catch (error) {
+      console.error("Update error:", error);
+      return c.json({ error: "Internal server error" }, 500);
+    }
   })
   .patch(
     "/:id",

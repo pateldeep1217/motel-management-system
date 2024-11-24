@@ -11,6 +11,7 @@ import {
 import { createInsertSchema } from "drizzle-zod";
 
 import { relations } from "drizzle-orm";
+import { z } from "zod";
 
 export const PaymentMethodEnum = pgEnum("payment_method", ["Card", "Cash"]);
 
@@ -147,6 +148,8 @@ export const bookings = pgTable("bookings", {
   totalAmount: numeric("total_amount").notNull(),
   dailyRate: numeric("daily_rate", { precision: 10, scale: 2 }).notNull(),
   paymentMethod: PaymentMethodEnum("payment_method").notNull(),
+  pendingAmount: numeric("pending_amount").notNull(),
+  paymentDueDate: timestamp("payment_due_date", { mode: "date" }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -225,5 +228,8 @@ export const userInsertSchema = createInsertSchema(users);
 export const motelInsertSchema = createInsertSchema(motels);
 export const roomInsertSchema = createInsertSchema(rooms);
 export const guestInsertSchema = createInsertSchema(guests);
-export const bookingInsertSchema = createInsertSchema(bookings);
+export const bookingInsertSchema = createInsertSchema(bookings, {
+  checkInDate: z.coerce.date(),
+  checkOutDate: z.coerce.date(),
+});
 export const userMotelInsertSchema = createInsertSchema(userMotels);

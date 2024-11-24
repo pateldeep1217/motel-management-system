@@ -10,13 +10,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { InferResponseType } from "hono";
+import { client } from "@/lib/hono";
+
+type ResponseType = InferResponseType<
+  (typeof client.api.bookings)["$post"],
+  200
+>["data"];
 
 type TimePeriod = "daily" | "weekly" | "monthly" | "yearly";
 
 export default function ImprovedBookingStats({
   bookings = [],
 }: {
-  bookings: any[];
+  bookings: ResponseType[];
 }) {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("daily");
   console.log("Booking dailyRate:", bookings);
@@ -92,7 +99,7 @@ export default function ImprovedBookingStats({
           (bookingEnd.getTime() - bookingStart.getTime()) /
           (1000 * 60 * 60 * 24);
         occupiedRoomNights += nights;
-        revenue += nights * (booking.dailyRate || 0);
+        revenue += nights * Number(booking.dailyRate);
       });
 
       const totalRooms = 23;

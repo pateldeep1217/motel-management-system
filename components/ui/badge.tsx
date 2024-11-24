@@ -42,7 +42,7 @@ interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   variant: StatusVariant;
 }
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+export default function Badge({ className, variant, ...props }: BadgeProps) {
   return (
     <div
       className={cn(baseStyles, variantStyles[variant], className)}
@@ -50,4 +50,3 @@ function Badge({ className, variant, ...props }: BadgeProps) {
     />
   );
 }
-export default Badge;

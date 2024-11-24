@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  useCheckIn,
-  useCheckOut,
-} from "@/features/bookings/api/use-check-in-out";
+
 import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
 import { useGetBookings } from "@/features/bookings/api/use-get-bookings";
-import { toast } from "@/components/ui/use-toast";
+import useCheckIn from "@/features/bookings/api/use-check-in";
+import { toast } from "@/hooks/use-toast";
 
 type Room = {
   id: string;
@@ -32,7 +30,6 @@ export function RoomAvailabilitySystem() {
   const { data: bookings = [], isLoading: isLoadingBookings } =
     useGetBookings();
   const { mutate: checkIn } = useCheckIn();
-  const { mutate: checkOut } = useCheckOut();
 
   const [roomStatus, setRoomStatus] = useState<Record<string, Room["status"]>>(
     {}
@@ -68,24 +65,24 @@ export function RoomAvailabilitySystem() {
     });
   };
 
-  const handleCheckOut = (bookingId: string, roomId: string) => {
-    checkOut(bookingId, {
-      onSuccess: () => {
-        toast({
-          title: "Success",
-          description: "Guest checked out successfully",
-        });
-        setRoomStatus((prev) => ({ ...prev, [roomId]: "available" }));
-      },
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to check out",
-          variant: "destructive",
-        });
-      },
-    });
-  };
+  //   const handleCheckOut = (bookingId: string, roomId: string) => {
+  //     checkOut(bookingId, {
+  //       onSuccess: () => {
+  //         toast({
+  //           title: "Success",
+  //           description: "Guest checked out successfully",
+  //         });
+  //         setRoomStatus((prev) => ({ ...prev, [roomId]: "available" }));
+  //       },
+  //       onError: (error) => {
+  //         toast({
+  //           title: "Error",
+  //           description: error.message || "Failed to check out",
+  //           variant: "destructive",
+  //         });
+  //       },
+  //     });
+  //   };
 
   if (isLoadingRooms || isLoadingBookings) {
     return <div>Loading...</div>;
@@ -120,7 +117,7 @@ export function RoomAvailabilitySystem() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleCheckOut(booking.id, room.id)}
+                          onClick={() => {}}
                           className="mt-1"
                         >
                           Check Out
