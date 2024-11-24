@@ -74,16 +74,16 @@ export default function RoomManagementDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: bookings = [], isLoading: isLoadingBookings } =
+  const { data: bookings = [] } =
     useGetBookings();
   const { data: rooms = [], isLoading: isLoadingRooms } = useGetRooms();
-  const { mutateAsync: createBooking, isLoading: isCreatingBooking } =
+  const { mutateAsync: createBooking } =
     useCreateBooking();
   const { mutateAsync: editBooking } = useEditBooking();
-  const { mutateAsync: editRoom } = useEditRoom();
+
   const { data: bookingStatuses = [] } = useGetBookingStatuses();
-  const { mutateAsync: checkIn, isLoading: isCheckingIn } = useCheckIn();
-  const { mutateAsync: checkOut, isLoading: isCheckingOut } = useCheckOut();
+  const { mutateAsync: checkIn,  } = useCheckIn();
+  const { mutateAsync: checkOut } = useCheckOut();
 
   const availableRooms = rooms.filter((room) => room.status === "Available");
 
@@ -94,7 +94,7 @@ export default function RoomManagementDashboard() {
           booking.status === "CheckedIn" &&
           booking.pendingAmount > 0 &&
           isBefore(new Date(booking.paymentDueDate), new Date())
-      );
+    );
 
       overdueBookings.forEach((booking) => {
         toast({

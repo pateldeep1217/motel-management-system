@@ -1,29 +1,29 @@
-import { useForm } from "react-hook-form";
-import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form"
+import { format } from "date-fns"
+import { CalendarIcon, Loader2 } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+} from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 import {
   Form,
   FormControl,
@@ -31,14 +31,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/components/ui/form"
 
 interface CheckInFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: any) => void;
-  availableRooms: any[];
-  isSubmitting: boolean;
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (data: any) => void
+  availableRooms: any[]
+  isSubmitting: boolean
 }
 
 export function CheckInFormModal({
@@ -55,14 +55,14 @@ export function CheckInFormModal({
       checkInDate: null,
       checkOutDate: null,
     },
-  });
+  })
 
-  const { isValid } = form.formState;
+  const { isValid } = form.formState
 
   const handleSubmit = (data) => {
-    onSubmit(data);
-    form.reset();
-  };
+    onSubmit(data)
+    form.reset()
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -71,10 +71,7 @@ export function CheckInFormModal({
           <DialogTitle>Check-In</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="guestName"
@@ -141,7 +138,7 @@ export function CheckInFormModal({
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
-                        selected={field.value ?? undefined}
+                        selected={field.value}
                         onSelect={field.onChange}
                         initialFocus
                       />
@@ -179,7 +176,7 @@ export function CheckInFormModal({
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
-                        selected={field.value ?? undefined}
+                        selected={field.value}
                         onSelect={field.onChange}
                         initialFocus
                       />
@@ -209,5 +206,6 @@ export function CheckInFormModal({
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
+
