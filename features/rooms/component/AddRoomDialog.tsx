@@ -48,8 +48,6 @@ export default function AddRoomDialog() {
         <div className="space-y-6 px-2">
           <CreateRoomForm
             onSubmit={(data) => {
-              console.log(data);
-              // Handle form submission
               router.push("/rooms");
             }}
           />

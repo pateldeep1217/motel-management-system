@@ -17,7 +17,6 @@ export const useCreateMotel = () => {
   const mutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async (json) => {
       const response = await client.api.motels.create.$post({ json });
-      console.log(response);
 
       if (!response.ok) {
         throw new Error("Invalid JSON response");

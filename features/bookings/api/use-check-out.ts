@@ -18,6 +18,7 @@ const useCheckOut = () => {
       const response = await client.api.bookings["check-out"][":bookingId"][
         "$post"
       ](request);
+
       return response.json();
     },
     onSuccess: () => {

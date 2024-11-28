@@ -2,6 +2,13 @@
 import { client } from "@/lib/hono";
 import { useQuery } from "@tanstack/react-query";
 
+import { InferResponseType } from "hono";
+
+export type RoomResponseType = InferResponseType<
+  typeof client.api.rooms.$get,
+  200
+>["data"][0];
+
 export const useGetRooms = () => {
   return useQuery({
     queryKey: ["rooms"],

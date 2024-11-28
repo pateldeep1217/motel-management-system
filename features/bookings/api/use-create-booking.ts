@@ -23,7 +23,6 @@ export const useCreateBooking = () => {
       };
 
       const response = await client.api.bookings.$post({ json: payload });
-      console.log("Payload being sent:", payload);
 
       if (!response.ok) {
         console.error(

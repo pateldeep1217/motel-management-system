@@ -41,7 +41,11 @@ export function ExtendStayModal({ isOpen, onClose, onSubmit, booking }) {
             <Label htmlFor="currentCheckOut">Current Check-out Date</Label>
             <Input
               id="currentCheckOut"
-              value={format(new Date(booking?.checkOutDate), "PPP")}
+              value={
+                booking?.checkOutDate
+                  ? format(new Date(booking?.checkOutDate), "PPP")
+                  : ""
+              }
               disabled
             />
           </div>

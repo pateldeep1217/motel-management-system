@@ -6,18 +6,8 @@ export const useGetUserMotels = () => {
   return useQuery({
     queryKey: ["userMotels"],
     queryFn: async () => {
-      console.log("Starting motels request");
       try {
-        // Log the client object to ensure it's properly initialized
-        console.log("Client config:", {
-          client: client,
-          apiExists: !!client.api,
-          motelsExists: !!client.api?.motels,
-          getExists: !!client.api?.motels?.$get,
-        });
-
         const response = await client.api.motels.$get();
-        console.log("Raw response:", response);
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -30,7 +20,6 @@ export const useGetUserMotels = () => {
         }
 
         const data = await response.json();
-        console.log("Parsed response data:", data);
         return data.data;
       } catch (error) {
         console.error("Error in useGetUserMotels:", {});

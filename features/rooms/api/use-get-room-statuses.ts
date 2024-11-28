@@ -7,7 +7,6 @@ export const useGetRoomStatuses = () => {
     queryKey: ["roomStatuses"],
     queryFn: async () => {
       const response = await client.api.rooms.statuses.$get();
-      console.log(response.status, response.statusText);
       if (!response.ok) {
         throw new Error("Failed to fetch rooms");
       }

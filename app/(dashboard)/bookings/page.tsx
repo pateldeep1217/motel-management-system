@@ -62,7 +62,7 @@ export default function BookingDashboard() {
       const { start, end } = getDateRange();
       const isInRange = bookingDate >= start && bookingDate <= end;
       const matchesFilter =
-        booking.guestName.toLowerCase().includes(filterValue.toLowerCase()) ||
+        booking.name.toLowerCase().includes(filterValue.toLowerCase()) ||
         booking.id.toLowerCase().includes(filterValue.toLowerCase());
       return isInRange && matchesFilter;
     });

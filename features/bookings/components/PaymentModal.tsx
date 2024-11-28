@@ -28,7 +28,11 @@ export function PaymentModal({ isOpen, onClose, onSubmit, booking }) {
             <Label htmlFor="pendingAmount">Pending Amount</Label>
             <Input
               id="pendingAmount"
-              value={booking?.pendingAmount.toFixed(2)}
+              value={
+                typeof booking?.pendingAmount === "number"
+                  ? booking?.pendingAmount.toFixed(2)
+                  : ""
+              }
               disabled
             />
           </div>

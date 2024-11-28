@@ -6,9 +6,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RoomResponseType } from "@/features/rooms/api/use-get-rooms";
 
 interface RoomDetailsModalProps {
-  room: any;
+  room: RoomResponseType;
   isOpen: boolean;
   onClose: () => void;
   onCheckIn: (roomId: string) => void;
@@ -41,14 +42,6 @@ export function RoomDetailsModal({
             <div>
               <h3 className="font-semibold">Capacity</h3>
               <p>{room.capacity} persons</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Amenities</h3>
-              <ul className="list-inside list-disc">
-                {room.amenities.map((amenity, index) => (
-                  <li key={index}>{amenity}</li>
-                ))}
-              </ul>
             </div>
           </div>
         </ScrollArea>

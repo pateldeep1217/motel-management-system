@@ -5,15 +5,9 @@ import { format, addDays, isBefore } from "date-fns";
 import {
   LogIn,
   LogOut,
-  RefreshCw,
   Search,
   Filter,
-  Calendar,
-  PieChart,
-  Settings,
-  Users,
-  Clock,
-  DollarSign,
+  Loader2,
   AlertTriangle,
 } from "lucide-react";
 
@@ -21,14 +15,13 @@ import { useGetBookings } from "@/features/bookings/api/use-get-bookings";
 import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
 import { useCreateBooking } from "@/features/bookings/api/use-create-booking";
 import { useEditBooking } from "@/features/bookings/api/use-edit-booking";
-import { useEditRoom } from "@/features/rooms/api/use-edit-room";
 import { useGetBookingStatuses } from "@/features/bookings/api/use-get-booking-statuses";
 import useCheckIn from "@/features/bookings/api/use-check-in";
 import useCheckOut from "@/features/bookings/api/use-check-out";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Badge from "@/components/ui/badge";
+import Badge, { RoomStatus } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,16 +41,18 @@ import { PaymentModal } from "@/features/bookings/components/PaymentModal";
 import { InferResponseType } from "hono";
 
 import { client } from "@/lib/hono";
+import { Input } from "@/components/ui/input";
 
 type BookingResponseType = InferResponseType<
-  (typeof client.api.bookings)["$post"],
+  (typeof client.api.bookings)["$get"],
   200
->["data"];
+>["data"][0];
 
 type RoomResponseType = InferResponseType<
-  (typeof client.api.rooms)["$post"],
+  (typeof client.api.rooms)["$get"],
   200
->["data"];
+>["data"][0];
+
 export default function RoomManagementDashboard() {
   const { toast } = useToast();
 
@@ -73,16 +68,20 @@ export default function RoomManagementDashboard() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
 
-  const { data: bookings = [] } =
-    useGetBookings();
-  const { data: rooms = [], isLoading: isLoadingRooms } = useGetRooms();
-  const { mutateAsync: createBooking } =
-    useCreateBooking();
+  const { data: bookings = [], refetch: refetchBookings } = useGetBookings();
+  const {
+    data: rooms = [],
+    isLoading: isLoadingRooms,
+    refetch: refetchRooms,
+  } = useGetRooms();
+  const { mutateAsync: createBooking } = useCreateBooking();
   const { mutateAsync: editBooking } = useEditBooking();
-
   const { data: bookingStatuses = [] } = useGetBookingStatuses();
-  const { mutateAsync: checkIn,  } = useCheckIn();
+  const { mutateAsync: checkIn } = useCheckIn();
   const { mutateAsync: checkOut } = useCheckOut();
 
   const availableRooms = rooms.filter((room) => room.status === "Available");
@@ -92,9 +91,9 @@ export default function RoomManagementDashboard() {
       const overdueBookings = bookings.filter(
         (booking) =>
           booking.status === "CheckedIn" &&
-          booking.pendingAmount > 0 &&
-          isBefore(new Date(booking.paymentDueDate), new Date())
-    );
+          booking?.pendingAmount &&
+          isBefore(new Date(booking.paymentDueDate ?? ""), new Date())
+      );
 
       overdueBookings.forEach((booking) => {
         toast({
@@ -106,12 +105,11 @@ export default function RoomManagementDashboard() {
     };
 
     checkOverduePayments();
-    const interval = setInterval(checkOverduePayments, 24 * 60 * 60 * 1000); // Check daily
-
-    return () => clearInterval(interval);
   }, [bookings, toast]);
 
-  const handleCheckIn = async (data) => {
+  const handleCheckIn = async (data: BookingResponseType) => {
+    setIsCheckingIn(true);
+    setIsCreatingBooking(true);
     try {
       const confirmedStatus = bookingStatuses.find(
         (status) => status.status === "Confirmed"
@@ -131,30 +129,36 @@ export default function RoomManagementDashboard() {
         : new Date();
       const checkOutDate = data.checkOutDate
         ? new Date(data.checkOutDate)
-        : new Date();
+        : addDays(new Date(), 1);
 
-      const newBooking = await createBooking({
-        roomId: data.roomId,
-        guestName: data.guestName,
-        checkInDate,
-        checkOutDate,
-        bookingStatusId: confirmedStatus.id,
-        totalAmount: data.totalAmount,
-        paidAmount: data.paidAmount,
-        pendingAmount: data.totalAmount - data.paidAmount,
-        paymentDueDate: addDays(checkInDate, data.isWeeklyRate ? 7 : 1),
-        paymentMethod: data.paymentMethod,
-        dailyRate: data.dailyRate,
-        isWeeklyRate: data.isWeeklyRate,
-      });
+      const newBooking: BookingResponseType = (
+        await createBooking({
+          roomId: data.roomId,
+          name: data.name,
+          idProof: data.idProof
+          checkInDate,
+          checkOutDate,
+          bookingStatusId: confirmedStatus.id,
+          totalAmount: data.totalAmount,
+          paidAmount: data.paidAmount,
+          pendingAmount: (
+            Number(data.totalAmount) - Number(data.paidAmount)
+          ).toString(),
+          paymentDueDate: new Date(),
+          paymentMethod: data.paymentMethod,
+          dailyRate: data.dailyRate,
+        })
+      );
 
       if (newBooking?.id) {
-        await checkIn({ bookingId: newBooking.id });
+        await checkIn({ param: { bookingId: newBooking.id } });
         setIsCheckInModalOpen(false);
         toast({
           title: "Success",
           description: "Check-in completed successfully.",
         });
+        await refetchBookings();
+        await refetchRooms();
       } else {
         throw new Error("Booking creation failed");
       }
@@ -165,17 +169,23 @@ export default function RoomManagementDashboard() {
         title: "Error",
         description: "Failed to complete check-in.",
       });
+    } finally {
+      setIsCreatingBooking(false);
+      setIsCheckingIn(false);
     }
   };
 
-  const handleCheckOut = async (bookingId) => {
+  const handleCheckOut = async (bookingId: string) => {
+    setIsCheckingOut(true);
     try {
-      await checkOut({ bookingId });
+      await checkOut({ param: { bookingId } });
       setIsBookingModalOpen(false);
       toast({
         title: "Success",
         description: "Check-out completed successfully.",
       });
+      await refetchBookings();
+      await refetchRooms();
     } catch (error) {
       console.error(error);
       toast({
@@ -183,20 +193,25 @@ export default function RoomManagementDashboard() {
         title: "Error",
         description: "Failed to complete check-out.",
       });
+    } finally {
+      setIsCheckingOut(false);
     }
   };
 
   const handleExtendStay = async (
-    bookingId,
-    newCheckOutDate,
-    additionalAmount
+    bookingId: string,
+    newCheckOutDate: Date,
+    additionalAmount: number
   ) => {
     try {
+      if (!selectedBooking) {
+        throw new Error("Selected booking is null");
+      }
       const updatedBooking = await editBooking({
         id: bookingId,
         checkOutDate: newCheckOutDate,
         totalAmount: selectedBooking.totalAmount + additionalAmount,
-        pendingAmount: selectedBooking.pendingAmount + additionalAmount,
+        pendingAmount: selectedBooking.pendingAmount ?? "" + additionalAmount,
       });
 
       setSelectedBooking(updatedBooking);
@@ -205,6 +220,7 @@ export default function RoomManagementDashboard() {
         title: "Success",
         description: "Stay extended successfully.",
       });
+      await refetchBookings();
     } catch (error) {
       console.error(error);
       toast({
@@ -215,16 +231,17 @@ export default function RoomManagementDashboard() {
     }
   };
 
-  const handlePayment = async (bookingId, amount) => {
+  const handlePayment = async (bookingId: string, amount: number) => {
     try {
       const updatedBooking = await editBooking({
         id: bookingId,
-        paidAmount: selectedBooking.paidAmount + amount,
-        pendingAmount: selectedBooking.pendingAmount - amount,
-        paymentDueDate: addDays(
-          new Date(),
-          selectedBooking.isWeeklyRate ? 7 : 1
-        ),
+        paidAmount: (
+          Number(selectedBooking?.paidAmount ?? 0) + amount
+        ).toString(),
+        pendingAmount: (
+          Number(selectedBooking?.pendingAmount) - amount
+        ).toString(),
+        paymentDueDate: new Date(),
       });
 
       setSelectedBooking(updatedBooking);
@@ -233,6 +250,7 @@ export default function RoomManagementDashboard() {
         title: "Success",
         description: `Payment of $${amount} processed successfully.`,
       });
+      await refetchBookings();
     } catch (error) {
       console.error(error);
       toast({
@@ -243,7 +261,7 @@ export default function RoomManagementDashboard() {
     }
   };
 
-  const handleRoomClick = (room) => {
+  const handleRoomClick = (room: RoomResponseType) => {
     if (room.status === "Occupied" || room.status === "Reserved") {
       const booking = bookings.find(
         (b) =>
@@ -295,160 +313,91 @@ export default function RoomManagementDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col gap-8 p-8">
+    <div className="flex min-h-screen flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Room Management</h1>
-        <div className="flex items-center gap-4">
-          {Object.keys(getRoomStatusColor).map((status) => (
-            <Badge key={status} variant="outline" className="gap-2">
-              <div
-                className={`h-2 w-2 rounded-full ${
-                  getRoomStatusColor(status as RoomStatus).split(" ")[0]
-                }`}
-              />
-              {status}
-            </Badge>
-          ))}
-        </div>
+        <Button onClick={() => setIsCheckInModalOpen(true)}>
+          <LogIn className="mr-2 h-4 w-4" />
+          New Check-In / Reservation
+        </Button>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-8">
-          <div className="flex gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search rooms..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search rooms..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Rooms</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="occupied">Occupied</SelectItem>
+            <SelectItem value="reserved">Reserved</SelectItem>
+            <SelectItem value="under cleaning">Under Cleaning</SelectItem>
+            <SelectItem value="out of order">Out of Order</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-5">
+        {Object.entries(stats).map(([key, value]) => (
+          <Card key={key}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {key.charAt(0).toUpperCase() + key.slice(1)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{value}</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="flex-1">
+        <CardHeader>
+          <CardTitle>Room Status Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoadingRooms ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {Array.from({ length: 24 }).map((_, i) => (
+                <Skeleton key={i} className="h-[100px]" />
+              ))}
             </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Rooms</SelectItem>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="occupied">Occupied</SelectItem>
-                <SelectItem value="reserved">Reserved</SelectItem>
-                <SelectItem value="under cleaning">Under Cleaning</SelectItem>
-                <SelectItem value="out of order">Out of Order</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          ) : (
+            <ScrollArea className="h-[calc(100vh-300px)]">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                {filteredRooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className={`flex flex-col items-center justify-center rounded-lg border p-4 transition-colors ${getRoomStatusColor(
+                      room.status as RoomStatus
+                    )} cursor-pointer`}
+                    onClick={() => handleRoomClick(room)}
+                  >
+                    <div className="text-lg font-semibold">
+                      Room {room.number}
+                    </div>
+                    <div className="mb-2 text-sm">{room.status}</div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Room Status Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoadingRooms ? (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={i} className="h-[100px]" />
-                  ))}
-                </div>
-              ) : (
-                <ScrollArea className="h-[500px] pr-4">
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    {filteredRooms.map((room) => (
-                      <div
-                        key={room.id}
-                        className={`flex flex-col items-center justify-center rounded-lg border p-4 transition-colors ${getRoomStatusColor(
-                          room.status
-                        )} cursor-pointer`}
-                        onClick={() => handleRoomClick(room)}
-                      >
-                        <div className="text-lg font-semibold">
-                          Room {room.number}
-                        </div>
-                        <div className="mb-2 text-sm">{room.status}</div>
-                        {room.type === "Kitchenette" && (
-                          <Badge variant="secondary">Kitchenette</Badge>
-                        )}
-                      </div>
-                    ))}
+                    {room.type === "Kitchenette" && <Badge>Kitchenette</Badge>}
                   </div>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                className="w-full justify-start"
-                onClick={() => setIsCheckInModalOpen(true)}
-              >
-                <LogIn className="mr-2 h-4 w-4" />
-                New Check-In / Reservation
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Calendar className="mr-2 h-4 w-4" />
-                View Bookings Calendar
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Clock className="mr-2 h-4 w-4" />
-                Housekeeping Schedule
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <Users className="mr-2 h-4 w-4" />
-                Guest Directory
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                View Overdue Payments
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Statistics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Available</p>
-                  <p className="text-2xl font-bold text-emerald-500">
-                    {stats.available}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Occupied</p>
-                  <p className="text-2xl font-bold text-red-500">
-                    {stats.occupied}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Reserved</p>
-                  <p className="text-2xl font-bold text-blue-500">
-                    {stats.reserved}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Cleaning</p>
-                  <p className="text-2xl font-bold text-yellow-500">
-                    {stats.cleaning}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Total Rooms</p>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
 
       <BookingDetailsModal
         booking={selectedBooking}

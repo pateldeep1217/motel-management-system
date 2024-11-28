@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -164,6 +164,7 @@ export function RoomForm({
                   <SelectContent>
                     <SelectItem value="Single">Single</SelectItem>
                     <SelectItem value="Double">Double</SelectItem>
+                    <SelectItem value="Double">kitchenette</SelectItem>
                     <SelectItem value="Suite">Suite</SelectItem>
                   </SelectContent>
                 </Select>

@@ -134,12 +134,11 @@ const app = new Hono()
     const auth = c.get("authUser");
 
     const values = c.req.valid("json");
-    console.log("values", values);
+
     if (!auth || !auth.token?.id) {
       return c.json({ error: "Unauthorized" }, 401);
     }
 
-    console.log("auth: ", auth.token.id);
     const [userMotel] = await db
       .select()
       .from(userMotels)

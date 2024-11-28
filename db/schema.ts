@@ -139,17 +139,18 @@ export const bookings = pgTable("bookings", {
   guestId: text("guest_id")
     .notNull()
     .references(() => guests.id, { onDelete: "cascade" }),
-  guestName: text("guest_name").notNull(), // Included in the model
   checkInDate: timestamp("check_in", { mode: "date" }).notNull(),
   checkOutDate: timestamp("check_out", { mode: "date" }).notNull(),
   bookingStatusId: text("booking_status_id")
     .notNull()
     .references(() => bookingStatuses.id, { onDelete: "cascade" }),
-  totalAmount: numeric("total_amount").notNull(),
+  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
   dailyRate: numeric("daily_rate", { precision: 10, scale: 2 }).notNull(),
   paymentMethod: PaymentMethodEnum("payment_method").notNull(),
-  pendingAmount: numeric("pending_amount").notNull(),
-  paymentDueDate: timestamp("payment_due_date", { mode: "date" }).notNull(),
+  pendingAmount: numeric("pending_amount", { precision: 10, scale: 2 }),
+  paymentDueDate: timestamp("payment_due_date", { mode: "date" }),
+  paidAmount: numeric("paid_amount", { precision: 10, scale: 2 }),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -228,8 +229,16 @@ export const userInsertSchema = createInsertSchema(users);
 export const motelInsertSchema = createInsertSchema(motels);
 export const roomInsertSchema = createInsertSchema(rooms);
 export const guestInsertSchema = createInsertSchema(guests);
+export const guestNameAndIdProofSchema = guestInsertSchema.pick({
+  name: true,
+  idProof: true,
+});
 export const bookingInsertSchema = createInsertSchema(bookings, {
   checkInDate: z.coerce.date(),
   checkOutDate: z.coerce.date(),
 });
+export const bookingWithGuestInsertSchema = bookingInsertSchema.merge(
+  guestNameAndIdProofSchema
+);
+
 export const userMotelInsertSchema = createInsertSchema(userMotels);

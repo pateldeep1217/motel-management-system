@@ -9,13 +9,21 @@ type BookingStatus =
   | "cancelled"
   | "no-show"
   | "reserved";
-export type RoomStatus = "available" | "occupied" | "maintenance" | "cleaning";
+export type RoomStatus =
+  | "default"
+  | "available"
+  | "occupied"
+  | "maintenance"
+  | "cleaning";
 type StatusVariant = BookingStatus | RoomStatus;
 
 // Define the base styles and variants
 const baseStyles =
   "inline-flex items-center rounded-full border px-2 py-0.5 sm:px-1.5 text-xs sm:text-[11px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 whitespace-nowrap";
 const variantStyles: { [key in StatusVariant]: string } = {
+  default:
+    "bg-gray-200/20 text-gray-700 border-gray-200/25 dark:bg-gray-200/10 dark:text-gray-400",
+
   available:
     "bg-green-500/20 text-green-700 border-green-500/25 dark:bg-green-500/10 dark:text-green-400",
   occupied:
@@ -39,14 +47,10 @@ const variantStyles: { [key in StatusVariant]: string } = {
 };
 
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant: StatusVariant;
+  variant?: StatusVariant;
 }
 
 export default function Badge({ className, variant, ...props }: BadgeProps) {
-  return (
-    <div
-      className={cn(baseStyles, variantStyles[variant], className)}
-      {...props}
-    />
-  );
+  const variantStyle = variant ? variantStyles[variant] : variantStyles.default;
+  return <div className={cn(baseStyles, variantStyle, className)} {...props} />;
 }

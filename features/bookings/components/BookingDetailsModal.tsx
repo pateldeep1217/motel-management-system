@@ -15,6 +15,7 @@ interface BookingDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCheckOut: (bookingId: string) => void;
+  onExtendStay: () => void;
   isCheckingOut: boolean;
 }
 
@@ -93,6 +94,7 @@ export function BookingDetailsModal({
           >
             Check Out
           </Button>
+          <Button onClick={onExtendStay}>Extend Stay</Button>
         </div>
       </DialogContent>
     </Dialog>

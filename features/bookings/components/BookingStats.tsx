@@ -26,7 +26,6 @@ export default function ImprovedBookingStats({
   bookings: ResponseType[];
 }) {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("daily");
-  console.log("Booking dailyRate:", bookings);
 
   const stats = useMemo(() => {
     const today = new Date();
@@ -80,8 +79,6 @@ export default function ImprovedBookingStats({
           new Date(booking.checkOutDate) > start
       );
 
-      console.log(`Filtered bookings for ${timePeriod}:`, periodBookings);
-
       const totalNights =
         (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
       let occupiedRoomNights = 0;
@@ -133,19 +130,12 @@ export default function ImprovedBookingStats({
         )
       : 0;
 
-    console.log("Current Stats:", currentStats);
-    console.log("Previous Stats:", previousStats);
-
     return {
       ...currentStats,
       revenueChange,
       occupancyChange,
     };
   }, [bookings, timePeriod]);
-
-  console.log("revenue", stats.revenue);
-  console.log("averageRate", stats.averageRate);
-  console.log("occupancyRate", stats.occupancyRate);
 
   return (
     <>
