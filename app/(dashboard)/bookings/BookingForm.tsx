@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,12 +55,22 @@ const bookingSchema = z.object({
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
 
-export default function BookingForm() {
+export function BookingForm() {
   const { mutate: createBooking, status } = useCreateBooking();
   const { data: rooms, isLoading: isLoadingRooms } = useGetRooms();
+  console.log("Raw rooms data:", rooms);
+  console.log("isLoadingRooms:", isLoadingRooms);
   const availableRooms =
-    rooms?.filter((room) => room.status === "available") || [];
+    rooms?.filter((room) => {
+      console.log("Room:", room);
+      return room.status === "available";
+    }) || [];
+  console.log("Filtered availableRooms:", availableRooms);
   const isCreating = status === "pending";
+
+  useEffect(() => {
+    console.log("BookingForm mounted or rooms updated");
+  }, [rooms]);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingSchema),

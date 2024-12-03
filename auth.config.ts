@@ -5,14 +5,25 @@ import type { NextAuthConfig } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./db";
-import { users } from "./db/schema";
+import { userMotels, users } from "./db/schema";
 import { eq } from "drizzle-orm";
 
 const CredentialsSchema = z.object({
   email: z.string().email(),
   password: z.string(),
 });
+declare module "next-auth" {
+  interface User {
+    motelId?: string; // Add motelIds to User type
+  }
 
+  interface Session {
+    user: {
+      id: string;
+      motelId?: string; // Ensure motelIds exists on session user
+    };
+  }
+}
 declare module "next-auth/jwt" {
   interface JWT {
     id: string | undefined;
@@ -58,8 +69,17 @@ export default {
         if (!passwordsMatch) {
           return null;
         }
+        // Fetch the motelId(s) for the user
+        const motelQuery = await db
+          .select({ motelId: userMotels.motelId })
+          .from(userMotels)
+          .where(eq(userMotels.userId, user.id));
+        const motelId = motelQuery[0]?.motelId;
 
-        return user;
+        return {
+          ...user,
+          motelId,
+        };
       },
     }),
   ],
@@ -75,14 +95,21 @@ export default {
       if (token.id) {
         session.user.id = token.id;
       }
+      if (token.motelId) {
+        session.user.motelId = token.motelId.toString();
+      }
+      console.log("Session:", session);
+      console.log("Token:", token);
 
       return session;
     },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.motelId = user.motelId;
       }
 
+      console.log("Token jwt:", token);
       return token;
     },
   },

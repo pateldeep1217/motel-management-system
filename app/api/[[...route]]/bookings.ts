@@ -26,6 +26,9 @@ const app = new Hono()
       return c.json({ error: "Unauthorized" }, 401);
     }
 
+    console.log("Starting bookings request");
+    console.log("Token:", auth.token.motelId);
+
     try {
       const query = db
         .select({
@@ -56,7 +59,7 @@ const app = new Hono()
           eq(bookings.bookingStatusId, bookingStatuses.id)
         )
         .innerJoin(roomStatuses, eq(rooms.statusId, roomStatuses.id))
-        .where(eq(userMotels.userId, auth.token.id as string))
+        .where(eq(userMotels.motelId, auth.token.motelId as string))
         .orderBy(asc(bookings.checkInDate));
 
       const data = await query;

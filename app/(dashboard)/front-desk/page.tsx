@@ -1,30 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, addDays, isBefore } from "date-fns";
-import {
-  LogIn,
-  LogOut,
-  Search,
-  Filter,
-  Loader2,
-  AlertTriangle,
-} from "lucide-react";
+import { isBefore, addDays } from "date-fns";
+import { Search, Filter, Loader2 } from "lucide-react";
 
 import { useGetBookings } from "@/features/bookings/api/use-get-bookings";
 import { useGetRooms } from "@/features/rooms/api/use-get-rooms";
-import { useCreateBooking } from "@/features/bookings/api/use-create-booking";
-import { useEditBooking } from "@/features/bookings/api/use-edit-booking";
-import { useGetBookingStatuses } from "@/features/bookings/api/use-get-booking-statuses";
-import useCheckIn from "@/features/bookings/api/use-check-in";
-import useCheckOut from "@/features/bookings/api/use-check-out";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Badge, { RoomStatus } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -32,59 +20,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { BookingDetailsModal } from "@/features/bookings/components/BookingDetailsModal";
-import { RoomDetailsModal } from "@/features/bookings/components/RoomDetailsModal";
-import { CheckInFormModal } from "@/features/bookings/components/CheckInFormModal";
-import { ExtendStayModal } from "@/features/bookings/components/ExtendStayModal";
-import { PaymentModal } from "@/features/bookings/components/PaymentModal";
-import { InferResponseType } from "hono";
-
-import { client } from "@/lib/hono";
-import { Input } from "@/components/ui/input";
-
-type BookingResponseType = InferResponseType<
-  (typeof client.api.bookings)["$get"],
-  200
->["data"][0];
-
-type RoomResponseType = InferResponseType<
-  (typeof client.api.rooms)["$get"],
-  200
->["data"][0];
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function RoomManagementDashboard() {
   const { toast } = useToast();
 
-  const [selectedBooking, setSelectedBooking] =
-    useState<BookingResponseType | null>(null);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<RoomResponseType | null>(
-    null
-  );
-  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
-  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
-  const [isExtendStayModalOpen, setIsExtendStayModalOpen] = useState(false);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isCheckingIn, setIsCheckingIn] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
 
-  const { data: bookings = [], refetch: refetchBookings } = useGetBookings();
-  const {
-    data: rooms = [],
-    isLoading: isLoadingRooms,
-    refetch: refetchRooms,
-  } = useGetRooms();
-  const { mutateAsync: createBooking } = useCreateBooking();
-  const { mutateAsync: editBooking } = useEditBooking();
-  const { data: bookingStatuses = [] } = useGetBookingStatuses();
-  const { mutateAsync: checkIn } = useCheckIn();
-  const { mutateAsync: checkOut } = useCheckOut();
-
-  const availableRooms = rooms.filter((room) => room.status === "Available");
+  // Using hooks to fetch data
+  const { data: bookings = [] } = useGetBookings();
+  const { data: rooms = [], isLoading: isLoadingRooms } = useGetRooms();
 
   useEffect(() => {
     const checkOverduePayments = () => {
@@ -106,183 +52,6 @@ export default function RoomManagementDashboard() {
 
     checkOverduePayments();
   }, [bookings, toast]);
-
-  const handleCheckIn = async (data: BookingResponseType) => {
-    setIsCheckingIn(true);
-    setIsCreatingBooking(true);
-    try {
-      const confirmedStatus = bookingStatuses.find(
-        (status) => status.status === "Confirmed"
-      );
-
-      if (!confirmedStatus) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Booking status not found.",
-        });
-        return;
-      }
-
-      const checkInDate = data.checkInDate
-        ? new Date(data.checkInDate)
-        : new Date();
-      const checkOutDate = data.checkOutDate
-        ? new Date(data.checkOutDate)
-        : addDays(new Date(), 1);
-
-      const newBooking: BookingResponseType = (
-        await createBooking({
-          roomId: data.roomId,
-          name: data.name,
-          idProof: data.idProof
-          checkInDate,
-          checkOutDate,
-          bookingStatusId: confirmedStatus.id,
-          totalAmount: data.totalAmount,
-          paidAmount: data.paidAmount,
-          pendingAmount: (
-            Number(data.totalAmount) - Number(data.paidAmount)
-          ).toString(),
-          paymentDueDate: new Date(),
-          paymentMethod: data.paymentMethod,
-          dailyRate: data.dailyRate,
-        })
-      );
-
-      if (newBooking?.id) {
-        await checkIn({ param: { bookingId: newBooking.id } });
-        setIsCheckInModalOpen(false);
-        toast({
-          title: "Success",
-          description: "Check-in completed successfully.",
-        });
-        await refetchBookings();
-        await refetchRooms();
-      } else {
-        throw new Error("Booking creation failed");
-      }
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to complete check-in.",
-      });
-    } finally {
-      setIsCreatingBooking(false);
-      setIsCheckingIn(false);
-    }
-  };
-
-  const handleCheckOut = async (bookingId: string) => {
-    setIsCheckingOut(true);
-    try {
-      await checkOut({ param: { bookingId } });
-      setIsBookingModalOpen(false);
-      toast({
-        title: "Success",
-        description: "Check-out completed successfully.",
-      });
-      await refetchBookings();
-      await refetchRooms();
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to complete check-out.",
-      });
-    } finally {
-      setIsCheckingOut(false);
-    }
-  };
-
-  const handleExtendStay = async (
-    bookingId: string,
-    newCheckOutDate: Date,
-    additionalAmount: number
-  ) => {
-    try {
-      if (!selectedBooking) {
-        throw new Error("Selected booking is null");
-      }
-      const updatedBooking = await editBooking({
-        id: bookingId,
-        checkOutDate: newCheckOutDate,
-        totalAmount: selectedBooking.totalAmount + additionalAmount,
-        pendingAmount: selectedBooking.pendingAmount ?? "" + additionalAmount,
-      });
-
-      setSelectedBooking(updatedBooking);
-      setIsExtendStayModalOpen(false);
-      toast({
-        title: "Success",
-        description: "Stay extended successfully.",
-      });
-      await refetchBookings();
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to extend stay.",
-      });
-    }
-  };
-
-  const handlePayment = async (bookingId: string, amount: number) => {
-    try {
-      const updatedBooking = await editBooking({
-        id: bookingId,
-        paidAmount: (
-          Number(selectedBooking?.paidAmount ?? 0) + amount
-        ).toString(),
-        pendingAmount: (
-          Number(selectedBooking?.pendingAmount) - amount
-        ).toString(),
-        paymentDueDate: new Date(),
-      });
-
-      setSelectedBooking(updatedBooking);
-      setIsPaymentModalOpen(false);
-      toast({
-        title: "Success",
-        description: `Payment of $${amount} processed successfully.`,
-      });
-      await refetchBookings();
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to process payment.",
-      });
-    }
-  };
-
-  const handleRoomClick = (room: RoomResponseType) => {
-    if (room.status === "Occupied" || room.status === "Reserved") {
-      const booking = bookings.find(
-        (b) =>
-          b.roomId === room.id &&
-          (b.status === "CheckedIn" || b.status === "Reserved")
-      );
-      if (booking) {
-        setSelectedBooking(booking);
-        setIsBookingModalOpen(true);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No active booking found for this room.",
-        });
-      }
-    } else {
-      setSelectedRoom(room);
-      setIsRoomModalOpen(true);
-    }
-  };
 
   const getRoomStatusColor = (status: RoomStatus) => {
     const colors = {
@@ -316,10 +85,6 @@ export default function RoomManagementDashboard() {
     <div className="flex min-h-screen flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Room Management</h1>
-        <Button onClick={() => setIsCheckInModalOpen(true)}>
-          <LogIn className="mr-2 h-4 w-4" />
-          New Check-In / Reservation
-        </Button>
       </div>
 
       <div className="flex gap-4">
@@ -382,14 +147,12 @@ export default function RoomManagementDashboard() {
                     key={room.id}
                     className={`flex flex-col items-center justify-center rounded-lg border p-4 transition-colors ${getRoomStatusColor(
                       room.status as RoomStatus
-                    )} cursor-pointer`}
-                    onClick={() => handleRoomClick(room)}
+                    )}`}
                   >
                     <div className="text-lg font-semibold">
                       Room {room.number}
                     </div>
                     <div className="mb-2 text-sm">{room.status}</div>
-
                     {room.type === "Kitchenette" && <Badge>Kitchenette</Badge>}
                   </div>
                 ))}
@@ -398,54 +161,6 @@ export default function RoomManagementDashboard() {
           )}
         </CardContent>
       </Card>
-
-      <BookingDetailsModal
-        booking={selectedBooking}
-        isOpen={isBookingModalOpen}
-        onClose={() => {
-          setIsBookingModalOpen(false);
-          setSelectedBooking(null);
-        }}
-        onCheckOut={handleCheckOut}
-        onExtendStay={() => setIsExtendStayModalOpen(true)}
-        onMakePayment={() => setIsPaymentModalOpen(true)}
-        isCheckingOut={isCheckingOut}
-      />
-
-      <RoomDetailsModal
-        room={selectedRoom}
-        isOpen={isRoomModalOpen}
-        onClose={() => {
-          setIsRoomModalOpen(false);
-          setSelectedRoom(null);
-        }}
-        onCheckIn={(roomId) => {
-          setIsRoomModalOpen(false);
-          setIsCheckInModalOpen(true);
-        }}
-      />
-
-      <CheckInFormModal
-        isOpen={isCheckInModalOpen}
-        onClose={() => setIsCheckInModalOpen(false)}
-        onSubmit={handleCheckIn}
-        availableRooms={availableRooms}
-        isSubmitting={isCreatingBooking || isCheckingIn}
-      />
-
-      <ExtendStayModal
-        isOpen={isExtendStayModalOpen}
-        onClose={() => setIsExtendStayModalOpen(false)}
-        onSubmit={handleExtendStay}
-        booking={selectedBooking}
-      />
-
-      <PaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        onSubmit={handlePayment}
-        booking={selectedBooking}
-      />
     </div>
   );
 }

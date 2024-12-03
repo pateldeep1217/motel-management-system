@@ -33,7 +33,7 @@ const app = new Hono()
         .from(rooms)
         .innerJoin(userMotels, eq(rooms.motelId, userMotels.motelId))
         .leftJoin(roomStatuses, eq(rooms.statusId, roomStatuses.id))
-        .where(eq(userMotels.userId, auth.token.id as string))
+        .where(eq(userMotels.motelId, auth.token.motelId as string))
         .orderBy(asc(rooms.number));
 
       const data = await query;
